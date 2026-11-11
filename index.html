@@ -98,11 +98,31 @@ details.raw{margin:0 0 12px;font-size:.8rem;color:var(--muted)}details.raw pre{w
  .dtool{display:none!important}
  .doc{box-shadow:none;margin:0;padding:0;max-width:none}
 }
+/* prijava / režim samo za pregled */
+#authBtn{white-space:nowrap}
+body.ro #authBtn{border-color:var(--warn);color:var(--warn)}
+body.ro [data-act=neword],body.ro [data-act=editord],body.ro [data-act=delord],body.ro [data-act=stnext],body.ro [data-act=paid],
+body.ro [data-act=newveh],body.ro [data-act=editveh],body.ro [data-act=delveh],body.ro [data-act=newrem],body.ro [data-act=editrem],
+body.ro [data-act=delrem],body.ro [data-act=remdone],body.ro [data-act=remundo],body.ro [data-act=newmech],body.ro [data-act=editmech],
+body.ro [data-act=delmech],body.ro [data-act=import],body.ro [data-act=restore],body.ro [data-act=reset],body.ro [data-act=scancam],
+body.ro [data-act=scanpick]{display:none!important}
+.roBar{background:rgba(251,191,36,.14);color:var(--warn);border:1px solid rgba(251,191,36,.4);border-radius:12px;padding:8px 12px;margin-bottom:12px;font-size:.85rem}
+#authDlg::backdrop{background:rgba(0,0,0,.65)}
+.supLink{display:inline-block;padding:10px 14px;border:1px solid var(--line);background:var(--card2);border-radius:12px;color:var(--txt);text-decoration:none;font-size:.9rem}
+.supLink.wa{background:#25d366;border-color:#25d366;color:#fff;font-weight:600}
+body.locked>*:not(dialog):not(script){visibility:hidden!important}
+.foot{max-width:1100px;margin:0 auto 12px;padding:0 12px}
+.foot-in{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:10px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:.85rem}
+.foot-in .lic{flex:1;min-width:200px}
+.foot-in .lic.warn{color:var(--warn)}.foot-in .lic.bad{color:var(--bad)}
+.foot-in .supLink{padding:8px 12px;font-size:.85rem}
+@media print{#appFoot{display:none}}
 </style>
 </head>
 <body>
-<div class="top"><div class="top-in"><div class="logo">ATMOS<b>RADIONICA</b></div><div class="shopname" id="shopName"></div></div></div>
+<div class="top"><div class="top-in"><div class="logo">ATMOS<b>RADIONICA</b></div><div class="shopname" id="shopName"></div><button class="btn-s" id="authBtn" type="button"></button></div></div>
 <main class="shell" id="view"></main>
+<div class="foot" id="appFoot"></div>
 <button class="fab" id="fab" aria-label="Dodaj">+</button>
 <nav id="nav">
   <button data-tab="pregled"><span>🏠</span>Pregled</button>
@@ -116,6 +136,7 @@ details.raw{margin:0 0 12px;font-size:.8rem;color:var(--muted)}details.raw pre{w
 </nav>
 <dialog id="dlg"><div class="dlg" id="dlgBody"></div></dialog>
 <dialog id="scanDlg"><div class="dlg" id="scanBody"></div></dialog>
+<dialog id="authDlg"><div class="dlg" id="authBody"></div></dialog>
 <div id="docView" hidden><div class="dtool"><button class="btn-p" data-act="print">🖨️ Štampaj / PDF</button><button data-act="docclose">✕ Zatvori</button></div><div class="doc" id="docBody"></div></div>
 <div class="upd" id="updBar" hidden><span class="grow">🔄 Dostupna je nova verzija aplikacije.</span><button data-act="updnow">Osveži</button></div>
 <div class="toast" id="toast"></div>
@@ -127,7 +148,9 @@ details.raw{margin:0 0 12px;font-size:.8rem;color:var(--muted)}details.raw pre{w
 
 <script>
 'use strict';
-const VER='1.0.0';
+const VER='1.4.0';
+let authState='locked'; /* locked = mora prijava; ok = licenca važi; expired = licenca istekla (samo pregled) */
+let RO=true; /* režim samo za pregled dok se ne potvrdi prijava */
 const $=id=>document.getElementById(id);
 const KEY='atmosRadionica1';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -157,7 +180,7 @@ function load(){try{const r=JSON.parse(localStorage.getItem(KEY));if(r&&typeof r
 let db=load();
 const S=()=>db.settings;
 const hasData=()=>db.vehicles.length||db.orders.length||db.reminders.length||db.mechs.length;
-function persist(){try{localStorage.setItem(KEY,JSON.stringify(db));return true}catch{toast('Greška pri čuvanju (memorija puna?) — napravi izvoz!');return false}}
+function persist(){if(RO)return true;try{localStorage.setItem(KEY,JSON.stringify(db));return true}catch{toast('Greška pri čuvanju (memorija puna?) — napravi izvoz!');return false}}
 let bkT=null;
 function save(){persist();updateBadge();clearTimeout(bkT);bkT=setTimeout(()=>{fbWrite().catch(()=>{})},15000)}
 const vehById=id=>db.vehicles.find(v=>v.id===id);
@@ -180,7 +203,7 @@ async function takeSnap(reason,force){
   try{if(!hasData())return;const data=JSON.stringify(db);await loadSnaps();const day=todayStr();if(!force&&snaps.length&&snaps[0].day===day)return;
     snaps.unshift({t:new Date().toISOString(),day,reason:reason||'automatski',data});const keep=Math.max(1,Math.min(30,num(S().snapKeep)||7));while(snaps.length>keep)snaps.pop();await idbSet('snaps',snaps)}catch{}
 }
-async function restoreSnap(i){const s=snaps[i];if(!s)return;
+async function restoreSnap(i){if(RO){roBlock();return}const s=snaps[i];if(!s)return;
   if(!confirm('Vratiti podatke iz kopije od '+new Date(s.t).toLocaleString('sr-RS')+'? Trenutno stanje se prvo sačuva.'))return;
   const data=s.data;await takeSnap('pre-vraćanja',true);db=norm(JSON.parse(data));persist();render();toast('Podaci vraćeni ✔')}
 
@@ -244,7 +267,7 @@ const ui={tab:'pregled',q:'',st:'all',mech:'',rp:'3',remTab:'act'};
 const SEC=['vise','mehanicari','izvestaji','podesavanja'];
 const ACCS=['#ea580c','#2563eb','#16a34a','#dc2626','#7c3aed','#0891b2','#475569'];
 function applyTheme(){const s=S();document.documentElement.dataset.theme=s.theme==='auto'?(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'):s.theme;
-  document.documentElement.style.setProperty('--acc',s.accent);document.body.className=s.fs==='l'?'fs-l':s.fs==='s'?'fs-s':'';
+  document.documentElement.style.setProperty('--acc',s.accent);document.body.className=(s.fs==='l'?'fs-l':s.fs==='s'?'fs-s':'')+(RO?' ro':'')+(authState==='locked'?' locked':'');
   document.querySelector('meta[name=theme-color]').content=document.documentElement.dataset.theme==='light'?'#f3f4f6':'#111318'}
 function go(t){ui.tab=t;ui.q='';render();window.scrollTo(0,0)}
 function render(){
@@ -253,7 +276,7 @@ function render(){
   $('vehList').innerHTML=db.vehicles.map(v=>`<option value="${esc(vehLabel(v))}">`).join('');
   const names=new Set();db.orders.forEach(o=>(o.items||[]).forEach(i=>i.name&&names.add(i.name)));$('itemList').innerHTML=[...names].slice(-300).map(n=>`<option value="${esc(n)}">`).join('');
   document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===ui.tab||(b.dataset.tab==='vise'&&SEC.includes(ui.tab)&&innerWidth<900)));
-  $('fab').style.display=['pregled','nalozi','vozila','podsetnici','mehanicari'].includes(ui.tab)?'block':'none';
+  $('fab').style.display=['pregled','nalozi','vozila','podsetnici','mehanicari'].includes(ui.tab)&&!RO?'block':'none';
   updateBadge();
   const P={pregled:pgPregled,nalozi:pgNalozi,vozila:pgVozila,podsetnici:pgPodsetnici,mehanicari:pgMeh,izvestaji:pgIzvestaji,vise:pgVise,podesavanja:pgPodesavanja};
   $('view').innerHTML=P[ui.tab]();
@@ -350,11 +373,12 @@ function pgIzvestaji(){
   <div class="row wrap noprint"><button class="grow" data-act="csvord">📑 CSV naloga</button><button class="grow" onclick="window.print()">🖨️ Štampaj</button></div>`;
 }
 function pgVise(){const b=(t,ic,n,s)=>`<button data-tab="${t}"><span style="font-size:1.6rem">${ic}</span><div><b>${n}</b><div class="small muted">${s}</div></div></button>`;
-  return`<div class="more">${b('mehanicari','🔧','Mehaničari','Dodela naloga, opterećenje')}${b('izvestaji','📊','Izveštaji','Prihod po periodu i mehaničaru')}${b('podesavanja','⚙️','Podešavanja','Radionica, PDV, backup, ažuriranje')}</div>`}
+  return`<div class="more">${b('mehanicari','🔧','Mehaničari','Dodela naloga, opterećenje')}${b('izvestaji','📊','Izveštaji','Prihod po periodu i mehaničaru')}${b('podesavanja','⚙️','Podešavanja','Radionica, PDV, backup, ažuriranje')}</div>${supportCard()}`}
 function pgPodesavanja(){
   const s=S(),sh=s.shop,fi=(l,p,v,t,extra)=>`<div><label class="l">${l}</label><input class="fld" data-cfg="${p}" ${t==='n'?'type="number" inputmode="decimal" step="any" data-n="1"':''} value="${esc(v)}" ${extra||''}></div>`;
   const last=[['Interni',snaps[0]&&snaps[0].t],['Folder',s.lastFolder],['Izvoz',s.lastExport]];
   return`
+  ${supportCard()}
   <div class="card"><h3>🏢 Podaci radionice <span class="muted small">(na štampanim dokumentima)</span></h3><div class="grid g2">
    <div style="grid-column:1/-1"><label class="l">Naziv</label><input class="fld" data-cfg="shop.name" value="${esc(sh.name)}" placeholder="Auto servis …"></div>
    ${fi('Adresa','shop.addr',sh.addr)}${fi('Mesto','shop.city',sh.city)}${fi('Telefon','shop.phone',sh.phone)}${fi('E-pošta','shop.email',sh.email)}${fi('PIB','shop.pib',sh.pib)}${fi('Matični broj','shop.mb',sh.mb)}
@@ -438,7 +462,7 @@ const vehFields=()=>[
   {k:'km',l:'Trenutna kilometraža',t:'number',h:1},{k:'color',l:'Boja',h:1},
   {k:'owner',l:'Vlasnik / korisnik',h:1},{k:'phone',l:'Telefon',t:'tel',h:1},
   {k:'note',l:'Napomena',t:'textarea'}];
-function openVeh(id,pre,ctx){
+function openVeh(id,pre,ctx){if(RO){roBlock();return}
   vctx=Object.assign({id:id||''},ctx||{});
   const v=id?vehById(id):null;
   const vals=Object.assign({},v||{},pre||{});
@@ -453,7 +477,7 @@ function openVeh(id,pre,ctx){
       if(vctx.then==='order'){setTimeout(()=>{ed.o.vehicleId=t.id;drawOrder()},0);return false}
     }});
 }
-function delVeh(id){const v=vehById(id);if(!v)return;const n=db.orders.filter(o=>o.vehicleId===id).length;
+function delVeh(id){if(RO){roBlock();return}const v=vehById(id);if(!v)return;const n=db.orders.filter(o=>o.vehicleId===id).length;
   if(n){alert('Vozilo ima '+n+' naloga i ne može da se obriše. Prvo obriši naloge.');return}
   if(confirm('Obrisati vozilo '+v.plate+'?')){db.reminders=db.reminders.filter(r=>r.vehicleId!==id);db.vehicles=db.vehicles.filter(x=>x.id!==id);save();render()}}
 function showVeh(id){
@@ -472,7 +496,7 @@ function showVeh(id){
 /* ---------- RADNI NALOG (editor) ---------- */
 let ed=null;
 function newOrderObj(pre){const m=db.mechs.find(x=>x.active!==false);return Object.assign({id:uid(),no:'',status:'uzet',date:todayStr(),km:'',mechId:m?m.id:'',vehicleId:'',complaint:'',note:'',items:[],discount:0,paid:false,payMethod:'Gotovina',nextDate:'',nextKm:'',remId:''},pre||{})}
-function openOrder(id,pre){
+function openOrder(id,pre){if(RO){roBlock();return}
   const src=id?db.orders.find(x=>x.id===id):null;
   ed={isNew:!src,o:src?JSON.parse(JSON.stringify(src)):newOrderObj(pre)};
   drawOrder();if(!$('dlg').open)$('dlg').showModal();
@@ -508,13 +532,13 @@ function applyAfter(o){
   if(o.status==='zavrsen'){if(!o.doneDate)o.doneDate=todayStr();ensureReminder(o)}else o.doneDate='';
   if(o.paid&&!o.paidDate)o.paidDate=todayStr();if(!o.paid)o.paidDate='';
 }
-function saveOrder(){
+function saveOrder(){if(RO){roBlock();return}
   const o=ed.o;if(!o.vehicleId){toast('Izaberi vozilo (ili dodaj novo)');return null}
   o.items=o.items.filter(i=>String(i.name).trim()||num(i.price));
   let t;if(ed.isNew){o.no=nextNo('N');db.orders.push(o);t=o}else{t=db.orders.find(x=>x.id===o.id);Object.assign(t,o)}
   applyAfter(t);save();return t;
 }
-function setStatus(id,st){const o=db.orders.find(x=>x.id===id);if(!o)return;o.status=st;applyAfter(o);save();render();toast(st==='zavrsen'?'Nalog završen ✔'+(o.remId?' — sledeći servis zakazan':''):'Status: '+ST[st].l)}
+function setStatus(id,st){if(RO){roBlock();return}const o=db.orders.find(x=>x.id===id);if(!o)return;o.status=st;applyAfter(o);save();render();toast(st==='zavrsen'?'Nalog završen ✔'+(o.remId?' — sledeći servis zakazan':''):'Status: '+ST[st].l)}
 
 /* ---------- DOKUMENTA (štampa) ---------- */
 function pickDoc(id){
@@ -550,7 +574,7 @@ function docHtml(o,kind){
 }
 
 /* ---------- PODSETNICI / MEHANIČARI forme ---------- */
-function openRem(id,pre){
+function openRem(id,pre){if(RO){roBlock();return}
   const r=id?db.reminders.find(x=>x.id===id):null,v=r?vehById(r.vehicleId):(pre&&pre.vehicleId?vehById(pre.vehicleId):null);
   openForm({title:r?'Izmena podsetnika':'Novi podsetnik',values:Object.assign({},r||{},{veh:v?vehLabel(v):''}),fields:[
     {k:'veh',l:'Vozilo',t:'veh'},{k:'title',l:'Šta treba uraditi',req:1,list:'remList',ph:'Redovni servis'},
@@ -562,15 +586,15 @@ function openRem(id,pre){
       const d={vehicleId:vid,title:o.title,dueDate:o.dueDate,dueKm:o.dueKm,repMonths:o.repMonths,repKm:o.repKm,note:o.note};
       if(r)Object.assign(r,d);else db.reminders.push(Object.assign({id:uid(),done:false},d));save();toast('Podsetnik sačuvan ✔')}});
 }
-function remDone(id){const r=db.reminders.find(x=>x.id===id);if(!r)return;r.done=true;
+function remDone(id){if(RO){roBlock();return}const r=db.reminders.find(x=>x.id===id);if(!r)return;r.done=true;
   if(num(r.repMonths)||num(r.repKm)){const v=vehById(r.vehicleId);
     db.reminders.push({id:uid(),vehicleId:r.vehicleId,title:r.title,dueDate:num(r.repMonths)?addM(todayStr(),Math.round(num(r.repMonths))):'',dueKm:num(r.repKm)?((v&&num(v.km))?num(v.km):num(r.dueKm))+num(r.repKm):'',repMonths:r.repMonths,repKm:r.repKm,done:false,note:r.note});toast('Urađeno — zakazan sledeći put ✔')}
   else toast('Urađeno ✔');save();render()}
-function openMech(id){const m=id?mechById(id):null;
+function openMech(id){if(RO){roBlock();return}const m=id?mechById(id):null;
   openForm({title:m?'Izmena mehaničara':'Novi mehaničar',values:m||{},fields:[{k:'name',l:'Ime i prezime',req:1},{k:'phone',l:'Telefon',t:'tel',h:1},{k:'active',l:'Aktivan',t:'check',d:true},{k:'note',l:'Napomena',t:'textarea'}],
     onSave:o=>{if(m)Object.assign(m,o);else db.mechs.push(Object.assign({id:uid()},o));save()}});
   if(m)$('gf').elements.active.checked=m.active!==false}
-function delMech(id){const m=mechById(id);if(!m)return;
+function delMech(id){if(RO){roBlock();return}const m=mechById(id);if(!m)return;
   if(db.orders.some(o=>o.mechId===id)){if(confirm(m.name+' ima naloge, pa ne može da se obriše. Označiti kao neaktivnog?')){m.active=false;save();render()}return}
   if(confirm('Obrisati mehaničara '+m.name+'?')){db.mechs=db.mechs.filter(x=>x.id!==id);save();render()}}
 
@@ -588,7 +612,7 @@ const csvOut=(name,rows)=>download(name,'﻿'+rows.map(r=>r.map(c=>'"'+String(c?
 function csvOrders(){const rows=[['Nalog','Datum','Status','Tablica','Vozilo','Vlasnik','Mehaničar','Km','Opis kvara','Rad','Delovi','Ukupno','Plaćeno','Predračun','Račun']];
   db.orders.forEach(o=>{const v=vehById(o.vehicleId)||{},t=calc(o),m=mechById(o.mechId);rows.push([o.no,o.date,ST[o.status].l,v.plate,vehName(v),v.owner,m?m.name:'',o.km,o.complaint,t.lab,t.part,Math.round(t.total*100)/100,o.paid?'da':'ne',o.proNo||'',o.invNo||''])});csvOut(`nalozi_${todayStr()}.csv`,rows)}
 function csvVeh(){const rows=[['Tablica','VIN','Marka','Model','Godina','Gorivo','ccm','kW','Km','Vlasnik','Telefon']];db.vehicles.forEach(v=>rows.push([v.plate,v.vin,v.make,v.model,v.year,v.fuel,v.ccm,v.kw,v.km,v.owner,v.phone]));csvOut(`vozila_${todayStr()}.csv`,rows)}
-$('impFile').onchange=e=>{
+$('impFile').onchange=e=>{if(RO){roBlock();e.target.value='';return}
   const f=e.target.files[0];if(!f)return;const r=new FileReader();
   r.onload=async ev=>{try{
     const p=JSON.parse(ev.target.result);if(!p||!Array.isArray(p.vehicles)||!Array.isArray(p.orders))throw 0;
@@ -611,6 +635,7 @@ document.addEventListener('click',async e=>{
   if(d.ui){ui[d.ui]=d.val;render();return}
   if(d.tab&&!d.act){if($('dlg').open)$('dlg').close();go(d.tab);return}
   const id=d.id;
+  if(RO&&WRITE_ACTS.includes(d.act)){roBlock();return}
   switch(d.act){
     case'dlgclose':$('dlg').close();break;
     case'neword':openOrder(null,d.veh?{vehicleId:d.veh}:null);break;
@@ -671,7 +696,7 @@ document.addEventListener('change',e=>{
   const t=e.target,d=t.dataset;
   if(t.id==='mechF'){ui.mech=t.value;render();return}
   if(d.i!==undefined&&d.k==='name'){const it=ed.o.items[+d.i];if(!num(it.price)&&it.name){let last=null;db.orders.forEach(o=>(o.items||[]).forEach(x=>{if(x.name===it.name&&num(x.price))last=x}));if(last){it.price=last.price;it.type=last.type;drawOrder()}}return}
-  if(d.cfg!==undefined){let v=t.value;if(d.b)v=v==='1';else if(d.n||t.type==='number')v=num(v);setPath(S(),d.cfg,v);persist();if(['pdvRate','pdvIncl','snapKeep','backupDays'].includes(d.cfg)||d.cfg.startsWith('shop.'))render()}
+  if(d.cfg!==undefined){if(RO){roBlock();render();return}let v=t.value;if(d.b)v=v==='1';else if(d.n||t.type==='number')v=num(v);setPath(S(),d.cfg,v);persist();if(['pdvRate','pdvIncl','snapKeep','backupDays'].includes(d.cfg)||d.cfg.startsWith('shop.'))render()}
 });
 
 /* ---------- OBAVEŠTENJA ---------- */
@@ -758,7 +783,7 @@ function prep(bmp){
   c.putImageData(im,0,0);return cv;
 }
 function currentVehForm(){const f=$('gf');if(!f)return{};const o={};vehFields().forEach(x=>{if(f.elements[x.k])o[x.k]=f.elements[x.k].value});return o}
-async function runScan(file){
+async function runScan(file){if(RO){roBlock();return}
   const keep=currentVehForm();
   try{$('dlg').close()}catch{}
   sshow('<h3>📷 Skeniram dozvolu…</h3><div id="scMsg" class="muted small">Priprema slike…</div><div class="scbar"><i id="scBar"></i></div>');$('scanDlg').showModal();
@@ -805,6 +830,123 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http')){
   navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!hadCtl||reloading)return;reloading=true;location.reload()});
 }
 
+/* ---------- TEHNIČKA PODRŠKA ---------- */
+const SUPPORT_MAIL='vasserviserbgd@gmail.com',SUPPORT_WA='381606611488',SUPPORT_TEL='060 661 1488';
+function supportLinks(){
+  const info='Atmos Radionica v'+VER+(authUser?', korisnik: '+authUser:'');
+  return{
+    wa:'https://wa.me/'+SUPPORT_WA+'?text='+encodeURIComponent('Zdravo, treba mi pomoć oko aplikacije ('+info+').'),
+    ml:'mailto:'+SUPPORT_MAIL+'?subject='+encodeURIComponent('Atmos Radionica — tehnička podrška')+'&body='+encodeURIComponent('Opišite problem:\n\n\n---\n'+info)
+  };
+}
+function supportCard(){
+  const l=supportLinks();
+  return`<div class="card"><h3>🛟 Tehnička podrška</h3><div class="small muted" style="margin-bottom:10px">Pomoć oko prijave, licence i korišćenja aplikacije.</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="supLink wa" href="${esc(l.wa)}" target="_blank" rel="noopener">💬 WhatsApp · ${SUPPORT_TEL}</a><a class="supLink" href="${esc(l.ml)}">✉️ ${SUPPORT_MAIL}</a></div></div>`;
+}
+
+/* ---------- PRIJAVA (korisničko ime + PIN preko Google Apps Script) ---------- */
+/* URL web aplikacije iz Apps Script-a (Deploy → Manage deployments → Web app URL, završava se na /exec) */
+const AUTH_URL='https://script.google.com/macros/s/AKfycbzMgcxSAirMpyT7ysmyxYeX-IqSOeR2guUFhWM5H6_mkAuUa3O6nr5x2ANlA3T2za8eoQ/exec';
+const AUTH_KEY='atmosAuth1';
+const OFFLINE_DAYS=7;            /* koliko dana sme da radi bez internet provere; posle toga se traži prijava uz internet */
+const RECHECK_MIN=30;            /* na koliko minuta se ponovo proverava PIN */
+const WRITE_ACTS=['neword','editord','delord','stnext','paid','ordsave','ordprint','additem','itemdel','ordnewveh','newveh','editveh','delveh','scancam','scanpick','newrem','editrem','delrem','remdone','remundo','newmech','editmech','delmech','import','restore','reset'];
+let authUser='',authDays=null,authExp='';
+/* preostali dani: broj sa servera umanjen za dane od poslednje provere */
+const daysLeft=s=>s.days==null?null:s.days-Math.floor((Date.now()-s.t)/864e5);
+/* sme li da uđe bez servera: najviše OFFLINE_DAYS od poslednje uspešne provere */
+const freshAuth=s=>Date.now()-s.t<OFFLINE_DAYS*864e5;
+/* stanje na osnovu sačuvane prijave: istekla licenca = samo pregled */
+const stateOf=s=>(s.expired||(daysLeft(s)!=null&&daysLeft(s)<=0))?'expired':'ok';
+function roBlock(){toast(authState==='expired'?'🔒 Licenca je istekla — samo pregled. Klikni „Aktivacija“.':'🔒 Režim samo za pregled')}
+function loadAuth(){try{const s=JSON.parse(localStorage.getItem(AUTH_KEY));return s&&s.u&&s.p?s:null}catch{return null}}
+function storeAuth(u,p,days,exp,expired){try{localStorage.setItem(AUTH_KEY,JSON.stringify({u,p,days:days==null?null:Number(days),exp:exp||'',expired:!!expired,t:Date.now()}))}catch{}}
+function clearAuth(){try{localStorage.removeItem(AUTH_KEY)}catch{}}
+const plDan=n=>(n%10===1&&n%100!==11)?'dan':'dana';
+function activationLink(){
+  const info='Atmos Radionica v'+VER+(authUser?', korisnik: '+authUser:'');
+  return'https://wa.me/'+SUPPORT_WA+'?text='+encodeURIComponent('Zdravo, želim da aktiviram / produžim licencu za aplikaciju Atmos Radionica ('+info+').');
+}
+function footHtml(){
+  if(authState==='locked')return'';
+  let cls='',txt;
+  if(authState==='expired'){cls='bad';txt='⛔ Licenca je istekla'+(authExp?' ('+authExp+')':'')+' — aplikacija radi samo za pregled'}
+  else if(authDays==null)txt='✔ Licenca: neograničeno';
+  else{cls=authDays<=7?'warn':'';txt='⏳ Licenca: preostalo <b>'+authDays+'</b> '+plDan(authDays)+(authExp?' (do '+esc(authExp)+')':'')}
+  return`<div class="foot-in"><div class="lic ${cls}">${txt}<div class="small muted">${esc(authUser)} · v${VER}</div></div><a class="supLink wa" href="${esc(activationLink())}" target="_blank" rel="noopener">🔑 Aktivacija</a></div>`;
+}
+function updAuthUI(){
+  RO=authState!=='ok';
+  const b=$('authBtn');
+  b.textContent=authState==='expired'?'⛔ Licenca istekla · Odjava':'👤 '+authUser+(authDays!=null?' · '+authDays+' d':'')+' · Odjava';
+  b.style.borderColor=authState==='expired'?'var(--bad)':authState==='ok'&&authDays!=null&&authDays<=7?'var(--warn)':'';
+  render();
+  $('appFoot').innerHTML=footHtml();
+}
+function setAuth(state,name,days,exp){authState=state;authUser=state==='locked'?'':name||'';authDays=state==='ok'&&days!=null?days:null;authExp=exp||'';updAuthUI()}
+function lock(msg){setAuth('locked');openAuth(msg)}
+async function serverCheck(u,p){
+  if(!AUTH_URL||AUTH_URL.startsWith('OVDE'))throw new Error('no-url');
+  const r=await fetch(AUTH_URL+'?user='+encodeURIComponent(u)+'&pin='+encodeURIComponent(p),{cache:'no-store'});
+  if(!r.ok)throw new Error('http '+r.status);
+  return r.json();
+}
+function openAuth(msg){
+  $('authBody').innerHTML=`<h3 style="margin:0 0 4px">Prijava</h3>
+  <p style="margin:0 0 12px;color:var(--muted);font-size:.85rem">Za pristup aplikaciji unesi korisničko ime i PIN.</p>
+  <label class="l" for="auU">Korisničko ime</label><input class="fld" id="auU" autocomplete="username" autocapitalize="off" spellcheck="false" style="margin-bottom:10px">
+  <label class="l" for="auP">PIN</label><input class="fld" id="auP" type="password" inputmode="numeric" autocomplete="current-password" style="margin-bottom:10px">
+  <div id="auMsg" style="min-height:1.2em;color:var(--bad);font-size:.85rem;margin-bottom:10px">${esc(msg||'')}</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-p" id="auGo" type="button">Prijavi se</button><a class="supLink wa" href="${esc(activationLink())}" target="_blank" rel="noopener">🔑 Aktivacija</a></div>
+  <div class="small muted" style="margin-top:14px">Treba ti pomoć? <a href="${esc(supportLinks().wa)}" target="_blank" rel="noopener" style="color:var(--acc)">WhatsApp ${SUPPORT_TEL}</a> · <a href="${esc(supportLinks().ml)}" style="color:var(--acc)">e-pošta</a></div>`;
+  const dlg=$('authDlg');if(!dlg.open)dlg.showModal();
+  const s=loadAuth();if(s)$('auU').value=s.u;
+  $('auGo').onclick=doLogin;
+  $('authBody').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();doLogin()}};
+  setTimeout(()=>($('auU').value?$('auP'):$('auU')).focus(),50);
+}
+/* dok je aplikacija zaključana, prozor za prijavu se ne može zatvoriti (Esc) */
+$('authDlg').addEventListener('cancel',e=>{if(authState==='locked')e.preventDefault()});
+async function doLogin(){
+  const u=$('auU').value.trim(),p=$('auP').value.trim(),msg=m=>{$('auMsg').textContent=m},go=$('auGo');
+  if(!u||!p){msg('Unesi korisničko ime i PIN.');return}
+  go.disabled=true;msg('Provera…');
+  try{
+    const r=await serverCheck(u,p);
+    if(r.status==='ok'){storeAuth(u,p,r.days,r.expires);$('authDlg').close();setAuth('ok',u,r.days,r.expires);toast(r.days!=null&&r.days<=7?'Prijava uspešna — licenca ističe za '+r.days+' '+plDan(r.days):'Prijava uspešna ✔')}
+    else if(r.status==='expired'){storeAuth(u,p,0,r.expires,true);$('authDlg').close();setAuth('expired',u,0,r.expires);toast('Licenca je istekla — samo pregled')}
+    else msg('Pogrešno korisničko ime ili PIN.');
+  }catch(err){
+    const s=loadAuth();
+    if(s&&s.u.toLowerCase()===u.toLowerCase()&&s.p===p&&freshAuth(s)){$('authDlg').close();const st=stateOf(s);setAuth(st,s.u,daysLeft(s),s.exp);toast('Prijava bez interneta (poslednja provera važi)')}
+    else msg('Nema veze sa serverom — proveri internet.');
+  }
+  go.disabled=false;
+}
+/* provera sačuvanih podataka pri pokretanju i povremeno u toku rada */
+async function authRecheck(){
+  const s=loadAuth();if(!s)return;
+  try{
+    const r=await serverCheck(s.u,s.p);
+    if(r.status==='ok'){storeAuth(s.u,s.p,r.days,r.expires);if(authState!=='ok'||authDays!==(r.days==null?null:Number(r.days))||authExp!==(r.expires||''))setAuth('ok',s.u,r.days,r.expires)}
+    else if(r.status==='expired'){storeAuth(s.u,s.p,0,r.expires,true);if(authState!=='expired')setAuth('expired',s.u,0,r.expires)}
+    else{clearAuth();lock('PIN više nije važeći. Prijavi se ponovo.')}
+  }catch{
+    /* nema mreže: važi poslednja uspešna provera do OFFLINE_DAYS */
+    if(!freshAuth(s)&&authState!=='locked'){lock('Predugo bez provere sa serverom (najviše '+OFFLINE_DAYS+' dana) — poveži se na internet i prijavi se.')}
+    else if(authState==='ok'){const d=daysLeft(s);if(d!=null&&d<=0)setAuth('expired',s.u,0,s.exp);else if(d!==authDays){authDays=d;updAuthUI()}}
+  }
+}
+function authStart(){
+  $('authBtn').onclick=()=>{if(confirm('Odjaviti se? Za ponovni ulaz biće potrebni korisničko ime i PIN.')){clearAuth();lock()}};
+  const s=loadAuth();
+  if(s&&freshAuth(s)){setAuth(stateOf(s),s.u,daysLeft(s),s.exp);authRecheck()}
+  else lock(s?'Prijava je istekla — poveži se na internet i prijavi se ponovo.':'');
+  setInterval(authRecheck,RECHECK_MIN*60*1000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)authRecheck()});
+}
+
 /* ---------- START ---------- */
 matchMedia('(prefers-color-scheme: light)').addEventListener?.('change',()=>S().theme==='auto'&&applyTheme());
 addEventListener('resize',()=>{clearTimeout(addEventListener.t);addEventListener.t=setTimeout(()=>{if(!$('dlg').open)render()},200)});
@@ -813,6 +955,7 @@ loadSnaps().then(()=>takeSnap('automatski')).then(()=>{if(ui.tab==='podesavanja'
 (function(){const q=new URLSearchParams(location.search);const t=q.get('tab');if(['nalozi','vozila','podsetnici','mehanicari','izvestaji','podesavanja'].includes(t))ui.tab=t;
   render();if(q.get('new')==='order')setTimeout(()=>openOrder(),50);
   setTimeout(checkNotif,1200);fbWrite().catch(()=>{})})();
+authStart();
 </script>
 </body>
 </html>
