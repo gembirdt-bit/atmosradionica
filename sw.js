@@ -2,7 +2,11 @@
    Automatsko ažuriranje: promeni VERSION (i VER u index.html) pri svakom izdanju.
    Pregledač proverava sw.js na serveru; kad se bajtovi razlikuju, nova verzija se preuzme u pozadini,
    a aplikacija prikaže traku „Osveži“. */
+<<<<<<< HEAD
 const VERSION = '1.6.0';
+=======
+const VERSION = '1.4.0';
+>>>>>>> 811bd60edea5291fe6d74b3c6b1f8260bdc493b6
 const CACHE = 'atmos-radionica-' + VERSION;
 const ASSETS = ['./', 'index.html', 'manifest.json', 'icon-192.png', 'icon-512.png'];
 
