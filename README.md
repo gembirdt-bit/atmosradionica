@@ -7,16 +7,36 @@ Svi podaci se čuvaju lokalno na uređaju — nema naloga, servera ni praćenja.
 ## Mogućnosti
 
 - **Radni nalozi** — statusi **Uzet u rad → U obradi → Završen**, plaćeno / za naplatu, dodela mehaničara, opis kvara, stavke (rad i delovi) sa količinom i cenom, popust, automatski brojevi (`N-2026-0001`)
-- **Štampa** — radni nalog (sa poljima za potpis), **predračun** i **račun** jednim klikom; štampa ili „Sačuvaj kao PDF“ iz pregledača
+- **Štampa** — radni nalog, **predračun** i **račun** jednim klikom, svi sa **logom radionice** i poljima za **potpis mehaničara i mušterije**; štampa ili „Sačuvaj kao PDF“ iz pregledača
+- **Obaveštenje klijentu** — kad je vozilo završeno, poruka na **Viber** / WhatsApp / SMS (tekst se podešava u Podešavanjima)
+- **Delovi** — poručivanje: Poručiti → Poručeno → Stiglo → U radionici, sa količinom, dobavljačem i vozilom; deljenje liste za poručivanje
 - **Baza vozila** — tablica, **VIN** (provera formata i prepoznavanje marke), marka, model, godina, **kubikaža (cm³)**, **snaga (kW / KS)**, gorivo, kilometraža, vlasnik, telefon, servisna istorija po vozilu
 - **Skeniranje saobraćajne dozvole kamerom (OCR)** — popunjava tablicu, VIN, kubikažu, snagu, marku, model, gorivo, godinu i vlasnika; rezultat se uvek proverava u formi
 - **Mehaničari** — evidencija, dodela naloga, izveštaj po mehaničaru
 - **Podsetnici na servis** — po datumu i/ili kilometraži, ponavljanje (na X meseci / X km), predlozi (mali/veliki servis, kaiš, kočnice, gume, tehnički…); posle završenog naloga sledeći redovni servis se zakazuje sam; slanje SMS-a ili poruke klijentu jednim klikom
-- **Izveštaji** — prihod za mesec, 3 meseca, 6 meseci i godinu; po mesecima i po mehaničarima; CSV izvoz
+- **Izveštaji** — prihod po **mesecu** i po **kalendarskoj godini** (sa strelicama za prethodni/sledeći period, grafikon po mesecima, prosek), 3 i 6 meseci; po mehaničarima; CSV izvoz
 - **PDV** — opciono (20% / 10%), cene sa ili bez PDV-a
 - **Automatski backup** — dnevne interne kopije, upis u izabrani folder posle svake izmene (Chrome / Edge na računaru), podsetnik za izvoz
 - **Izvoz / uvoz baze** — JSON (spajanje ili zamena), CSV naloga i vozila, deljenje kopije (Drive, e-pošta, Viber)
 - **Automatsko ažuriranje** — aplikacija pri svakom pokretanju i na svakih 30 minuta proverava novu verziju na sajtu i prikaže traku „Osveži“
+
+## Verzija 1.6.0
+
+- **Podeli PDF** — nalog, predračun i račun jednim klikom kao PDF fajl u bilo koju aplikaciju (Viber, WhatsApp, e-pošta, Drive…); gde deljenje nije podržano, PDF se preuzima. PDF je A4 sa marginama od 12 mm (stranice su slika dokumenta, tekst u PDF-u nije moguće selektovati)
+- Štampa je podrazumevano **A4 sa marginama** (ništa ne izlazi van ivica)
+- **Štampa / PDF izveštaja** (mesec, godina, 3 i 6 meseci)
+- Početni ekran: klik na „Uzeto u rad“, „U obradi“, „Završeno“, „Za naplatu“ otvara listu tih naloga; klik na podsetnik otvara Podsetnike
+- Novo na nalogu: **dogovoren rok isporuke** (oznaka „kasni“), **gorivo i stanje pri prijemu** (štampa se na radnom nalogu), broj dana u radionici, dugme **📞 Pozovi**
+- **Garancija** (broj dana) se štampa na računu — podešava se u Podešavanjima
+
+## Verzija 1.5.0
+
+- Popravljen mobilni prikaz (aplikacija se više ne pomera levo-desno)
+- Potpisi mehaničara i mušterije na nalogu, predračunu i računu (isključivo u Podešavanjima)
+- Obaveštenje klijentu preko Viber-a / WhatsApp-a / SMS-a kad je vozilo završeno
+- Nova sekcija **Delovi** (poručivanje, stiglo, u radionici, količina)
+- Izveštaji: mesečni i godišnji pregled
+- Logo radionice na dokumentima (Podešavanja → Logo radionice)
 
 ## Prijava (korisničko ime + PIN)
 
