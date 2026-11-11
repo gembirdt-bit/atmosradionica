@@ -18,6 +18,18 @@ Svi podaci se čuvaju lokalno na uređaju — nema naloga, servera ni praćenja.
 - **Izvoz / uvoz baze** — JSON (spajanje ili zamena), CSV naloga i vozila, deljenje kopije (Drive, e-pošta, Viber)
 - **Automatsko ažuriranje** — aplikacija pri svakom pokretanju i na svakih 30 minuta proverava novu verziju na sajtu i prikaže traku „Osveži“
 
+## Prijava (korisničko ime + PIN)
+
+Pri ulasku aplikacija traži korisničko ime i PIN; dok se ne prijaviš, sadržaj je skriven. PIN se proverava preko Google Apps Script-a koji čita privatnu Google tabelu (kolona A korisničko ime, B PIN, C datum isteka). Važeća licenca = normalan rad. Istekla licenca = **režim samo za pregled** (izmene su blokirane). Pogrešan PIN = nema ulaska.
+
+- U podnožju se vidi preostalo vreme licence i taster **Aktivacija** (WhatsApp poruka za aktivaciju / produženje).
+- Prijava se proverava na svakih 30 minuta kad ima interneta. Bez interneta aplikacija radi najviše 7 dana od poslednje uspešne provere; posle toga traži internet i novu prijavu.
+- U `index.html` je `AUTH_URL` (adresa web aplikacije, završava na `/exec`). Kod za Apps Script (`Code.gs`) **ne postavljaj** na javni sajt ni u javni repozitorijum jer sadrži ID tabele.
+
+## Tehnička podrška
+
+U aplikaciji (Više / Podešavanja i prozor za prijavu) nalaze se linkovi za podršku: WhatsApp 060 661 1488 i e-pošta vasserviserbgd@gmail.com. Poruka se unapred popunjava verzijom aplikacije i korisničkim imenom. Kontakti se menjaju u konstantama `SUPPORT_MAIL`, `SUPPORT_WA` i `SUPPORT_TEL` u `index.html`.
+
 ## Instalacija
 
 Aplikacija je statična — nema build koraka ni zavisnosti.
