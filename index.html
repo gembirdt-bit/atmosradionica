@@ -184,6 +184,7 @@ body{max-width:100vw;overflow-x:clip;touch-action:pan-y pinch-zoom}
   <button data-tab="vozila"><span>🚗</span>Vozila</button>
   <button data-tab="podsetnici"><span>⏰</span>Podsetnici</button>
   <button data-tab="musterije" class="sec"><span>👥</span>Mušterije</button>
+  <button data-tab="korisnici" class="sec admtab" hidden><span>👑</span>Korisnici</button>
   <button data-tab="delovi" class="sec"><span>📦</span>Delovi</button>
   <button data-tab="mehanicari" class="sec"><span>🔧</span>Mehaničari</button>
   <button data-tab="izvestaji" class="sec"><span>📊</span>Izveštaji</button>
@@ -250,7 +251,7 @@ body{max-width:100vw;overflow-x:clip;touch-action:pan-y pinch-zoom}
 <script>
 'use strict';
 if(window.ATMOS_BLOCKED)throw new Error('Atmos Radionica: otvori Android ili Windows aplikaciju');
-const VER='1.8.5';
+const VER='1.9.0';
 let authState='locked'; /* locked = mora prijava; ok = licenca važi; expired = licenca istekla (samo pregled) */
 let RO=true; /* režim samo za pregled dok se ne potvrdi prijava */
 const $=id=>document.getElementById(id);
@@ -370,7 +371,7 @@ function totHtml(t){const row=(l,v,b)=>`<div class="row sp" style="padding:3px 0
 
 /* ---------- UI STANJE ---------- */
 const ui={tab:'pregled',q:'',st:'all',mech:'',rp:'m',rmon:todayStr().slice(0,7),ry:String(new Date().getFullYear()),remTab:'act',pst:'all'};
-const SEC=['vise','musterije','delovi','mehanicari','izvestaji','podesavanja'];
+const SEC=['vise','korisnici','musterije','delovi','mehanicari','izvestaji','podesavanja'];
 const ACCS=['#ea580c','#2563eb','#16a34a','#dc2626','#7c3aed','#0891b2','#475569'];
 function applyTheme(){const s=S();document.documentElement.dataset.theme=s.theme==='auto'?(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'):s.theme;
   document.documentElement.style.setProperty('--acc',s.accent);document.body.className=(s.fs==='l'?'fs-l':s.fs==='s'?'fs-s':'')+(RO?' ro':'')+(authState==='locked'?' locked':'');
@@ -385,7 +386,9 @@ function render(){
   document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===ui.tab||(b.dataset.tab==='vise'&&SEC.includes(ui.tab)&&innerWidth<900)));
   $('fab').style.display=['pregled','nalozi','vozila','musterije','podsetnici','delovi','mehanicari'].includes(ui.tab)&&!RO?'block':'none';
   updateBadge();
-  const P={pregled:pgPregled,nalozi:pgNalozi,vozila:pgVozila,musterije:pgMusterije,podsetnici:pgPodsetnici,delovi:pgDelovi,mehanicari:pgMeh,izvestaji:pgIzvestaji,vise:pgVise,podesavanja:pgPodesavanja};
+  document.querySelectorAll('.admtab').forEach(b=>b.hidden=!isAdmin);
+  if(ui.tab==='korisnici'&&!isAdmin)ui.tab='pregled';
+  const P={korisnici:pgKorisnici,pregled:pgPregled,nalozi:pgNalozi,vozila:pgVozila,musterije:pgMusterije,podsetnici:pgPodsetnici,delovi:pgDelovi,mehanicari:pgMeh,izvestaji:pgIzvestaji,vise:pgVise,podesavanja:pgPodesavanja};
   $('view').innerHTML=P[ui.tab]();
 }
 /* osvežavanje u pozadini (sinhronizacija, provera licence, backup, čuvanje polja): ne dok korisnik kuca u polju,
@@ -503,7 +506,7 @@ function pgIzvestaji(){
   <div class="row wrap noprint"><button class="btn-p grow" data-act="repprint">🖨️ Štampaj / PDF izveštaj</button><button class="grow" data-act="csvord">📑 CSV naloga</button></div>`;
 }
 function pgVise(){const b=(t,ic,n,s)=>`<button data-tab="${t}"><span style="font-size:1.6rem">${ic}</span><div><b>${n}</b><div class="small muted">${s}</div></div></button>`;
-  return`<div class="more">${b('musterije','👥','Mušterije','Imenik, vozila, istorija, za naplatu')}${b('delovi','📦','Delovi','Poručivanje, stiglo, lager')}${b('mehanicari','🔧','Mehaničari','Dodela naloga, opterećenje')}${b('izvestaji','📊','Izveštaji','Prihod po periodu i mehaničaru')}${b('podesavanja','⚙️','Podešavanja','Radionica, PDV, backup, ažuriranje')}</div>${supportCard()}`}
+  return`<div class="more">${isAdmin?b('korisnici','👑','Korisnici','Licence, PIN-ovi, uređaji (admin)'):''}${b('musterije','👥','Mušterije','Imenik, vozila, istorija, za naplatu')}${b('delovi','📦','Delovi','Poručivanje, stiglo, lager')}${b('mehanicari','🔧','Mehaničari','Dodela naloga, opterećenje')}${b('izvestaji','📊','Izveštaji','Prihod po periodu i mehaničaru')}${b('podesavanja','⚙️','Podešavanja','Radionica, PDV, backup, ažuriranje')}</div>${supportCard()}`}
 function pgPodesavanja(){
   const s=S(),sh=s.shop,fi=(l,p,v,t,extra)=>`<div><label class="l">${l}</label><input class="fld" data-cfg="${p}" ${t==='n'?'type="number" inputmode="decimal" step="any" data-n="1"':''} value="${esc(v)}" ${extra||''}></div>`;
   const last=[['Interni',snaps[0]&&snaps[0].t],['Folder',s.lastFolder],['Izvoz',s.lastExport]];
@@ -1112,6 +1115,7 @@ document.addEventListener('click',async e=>{
     case'fbclear':fbClear();break;
     case'upcheck':checkUpdate(true);break;
     case'syncnow':syncNow(true);break;
+    case'admkey':case'admreload':case'admnew':case'admgen':case'admadd':case'admext':case'admextn':case'admextd':case'admextu':case'admedit':case'admsave':case'admdev':case'admdevx':case'admsend':case'admsharev':case'admsharew':case'admsharec':case'admshare':case'admdel':admAct(d.act,d);break;
     case'synctoggle':S().syncOff=!S().syncOff;try{localStorage.setItem(KEY,JSON.stringify(db))}catch{}if(!S().syncOff)syncSoon(500);render();break;
     case'updnow':applyUpdate();break;
     case'reset':if(confirm('Obrisati SVE podatke?'+(syOn()?' Brisanje važi i za sve ostale uređaje ovog naloga.':''))&&confirm('Sigurno? Preporuka: prvo napravi izvoz.')){await takeSnap('pre-brisanja',true);db=fresh();persist();go('pregled')}break;
@@ -1339,6 +1343,7 @@ function deviceId(){
     localStorage.setItem(DEV_KEY,d);return d}catch{return ''}
 }
 function deviceName(){const ua=navigator.userAgent||'';return /AtmosRadionicaApp/.test(ua)?'Windows':/Android/i.test(ua)?'Android':/iPhone|iPad/i.test(ua)?'iPhone':'Pregledač'}
+const lockedMsg=r=>'Previše pogrešnih pokušaja. Nalog je privremeno zaključan — pokušaj ponovo za '+(r.minutes||15)+' minuta.';
 const limitMsg=r=>'Nalog je već aktiviran na '+(r.max||3)+' uređaja. Za novi uređaj javi se podršci (taster Aktivacija).';
 const blockedMsg='Ovaj uređaj je isključen sa naloga. Javi se podršci (taster Aktivacija).';
 async function serverCheck(u,p){
@@ -1347,6 +1352,7 @@ async function serverCheck(u,p){
   if(!r.ok)throw new Error('http '+r.status);
   const j=await r.json();
   if(j&&j.maxDevices!=null)authDev={n:Number(j.devices)||0,max:Number(j.maxDevices)};
+  if(j&&(j.status==='ok'||j.status==='expired'))setAdmin(!!j.admin);
   return j;
 }
 function openAuth(msg){
@@ -1374,6 +1380,7 @@ async function doLogin(){
     if(r.status==='ok'){storeAuth(u,p,r.days,r.expires);$('authDlg').close();setAuth('ok',u,r.days,r.expires);toast(r.days!=null&&r.days<=7?'Prijava uspešna — licenca ističe za '+r.days+' '+plDan(r.days):'Prijava uspešna ✔')}
     else if(r.status==='expired'){storeAuth(u,p,0,r.expires,true);$('authDlg').close();setAuth('expired',u,0,r.expires);toast('Licenca je istekla — samo pregled')}
     else if(r.status==='limit')msg(limitMsg(r));
+    else if(r.status==='locked')msg(lockedMsg(r));
     else if(r.status==='blocked')msg(blockedMsg);
     else if(r.status==='update')msg('Osveži aplikaciju (zatvori je i ponovo otvori) pa se prijavi.');
     else msg('Pogrešno korisničko ime ili PIN.');
@@ -1393,6 +1400,7 @@ async function authRecheck(){
     if(r.status==='ok'){storeAuth(s.u,s.p,r.days,r.expires);if(authState!=='ok'||authDays!==(r.days==null?null:Number(r.days))||authExp!==(r.expires||''))setAuth('ok',s.u,r.days,r.expires)}
     else if(r.status==='expired'){storeAuth(s.u,s.p,0,r.expires,true);if(authState!=='expired')setAuth('expired',s.u,0,r.expires)}
     else if(r.status==='limit'){clearAuth();lock(limitMsg(r))}
+    else if(r.status==='locked'){/* neko pogađa PIN ovog naloga — ovaj uređaj ostaje prijavljen */}
     else if(r.status==='blocked'){clearAuth();lock(blockedMsg)}
     else{clearAuth();lock('PIN više nije važeći. Prijavi se ponovo.')}
   }catch{
@@ -1401,6 +1409,113 @@ async function authRecheck(){
     else if(authState==='ok'){const d=daysLeft(s);if(d!=null&&d<=0)setAuth('expired',s.u,0,s.exp);else if(d!==authDays){authDays=d;updAuthUI()}}
   }
 }
+
+/* ---------- ADMIN: KORISNICI ----------
+   Vidi samo admin nalog (server javlja „admin“). Svaka izmena traži i tajnu admin šifru (ADMIN_KEY u Code.gs),
+   koja se upisuje jednom na ovom uređaju. Sve izmene idu u Google tabelu. */
+const ADM_KEY='atmosAdminKey',APP_DL='https://github.com/gembirdt-bit/atmosradionica/releases/latest';
+let isAdmin=(()=>{try{return localStorage.getItem('atmosIsAdmin')==='1'}catch{return false}})();
+function setAdmin(v){if(v===isAdmin)return;isAdmin=v;try{localStorage.setItem('atmosIsAdmin',v?'1':'0')}catch{}if(!v&&ui.tab==='korisnici')ui.tab='pregled';bgRender()}
+const admKey=()=>{try{return localStorage.getItem(ADM_KEY)||''}catch{return''}};
+let adm={list:null,busy:false,err:'',t:0};
+const admUser=n=>(adm.list||[]).find(u=>u.user===n);
+async function admCall(op,extra,okMsg){
+  const s=loadAuth();if(!s){toast('Prijavi se ponovo');return false}
+  if(!admKey()){adm.err='key';bgRender();return false}
+  adm.busy=true;if(op==='list')bgRender();
+  try{
+    const r=await fetch(AUTH_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},cache:'no-store',
+      body:JSON.stringify(Object.assign({a:'admin',user:s.u,pin:s.p,device:deviceId(),dname:deviceName(),key:admKey(),op},extra||{}))});
+    const j=await r.json();
+    if(j.status==='ok'){adm.list=j.users;adm.err='';adm.t=Date.now();if(okMsg)toast(okMsg);return true}
+    if(j.status==='badkey'){try{localStorage.removeItem(ADM_KEY)}catch{}adm.err='key';toast('Pogrešna admin šifra');return false}
+    if(j.status==='locked'){adm.err=lockedMsg(j);toast(adm.err);return false}
+    if(j.status==='forbidden'){setAdmin(false);toast('Ovaj nalog nije admin');return false}
+    if(j.status==='error'){toast('⚠ '+j.msg);return false}
+    adm.err=j.v&&!String(j.v).startsWith('admin')?'Na serveru je stari Code.gs — postavi novu verziju (admin).':'Greška servera';toast(adm.err);return false;
+  }catch(e){adm.err='Nema veze sa serverom';toast(adm.err);return false}
+  finally{adm.busy=false;if(ui.tab==='korisnici'&&!document.querySelector('dialog[open]'))bgRender()}
+}
+const admPin=()=>{const a=new Uint32Array(1);crypto.getRandomValues(a);return String(10000000+a[0]%90000000)};
+const isoDate=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+function admBadge(u){
+  if(u.status==='expired')return`<span class="badge b-bad">Istekla ${esc(u.exp)}</span>`;
+  if(u.status==='invalid')return`<span class="badge b-bad">Neispravan datum</span>`;
+  if(u.days==null)return`<span class="badge b-ok">Neograničeno</span>`;
+  return`<span class="badge ${u.days<=7?'b-warn':'b-ok'}">${u.days} ${plDan(u.days)} · do ${esc(u.exp)}</span>`;
+}
+function pgKorisnici(){
+  if(!isAdmin)return'<div class="empty">Ovaj ekran vidi samo admin.</div>';
+  if(!admKey()||adm.err==='key')return`<div class="card"><h3>👑 Admin šifra</h3>
+    <div class="small muted" style="margin-bottom:10px">Za upravljanje korisnicima upiši tajnu admin šifru (ADMIN_KEY iz Code.gs). Pamti se samo na ovom uređaju.</div>
+    <input class="fld" id="admKeyIn" type="password" autocomplete="off" placeholder="Admin šifra" style="margin-bottom:10px">
+    <button class="btn-p" data-act="admkey" style="width:100%">🔓 Otključaj</button></div>`;
+  if(!adm.list&&!adm.busy&&!adm.err)setTimeout(()=>admCall('list'),0);
+  const q=nName(ui.q);
+  let l=(adm.list||[]).slice();if(q)l=l.filter(u=>u.user.toLowerCase().includes(q));
+  const ord={expired:0,invalid:0,ok:1};l.sort((a,b)=>(ord[a.status]-ord[b.status])||((a.days==null?1e9:a.days)-(b.days==null?1e9:b.days))||a.user.localeCompare(b.user));
+  const all=adm.list||[],exp=all.filter(u=>u.status==='expired').length,soon=all.filter(u=>u.status==='ok'&&u.days!=null&&u.days<=7).length;
+  return`<div class="grid g3" style="margin-bottom:12px"><div class="stat"><small>Korisnika</small><b>${all.length}</b></div><div class="stat" style="border-left-color:var(--warn)"><small>Ističe (7 d)</small><b>${soon}</b></div><div class="stat" style="border-left-color:var(--bad)"><small>Istekla</small><b>${exp}</b></div></div>
+  <div class="row wrap" style="margin-bottom:12px;gap:8px"><input class="fld grow" id="q" placeholder="🔍 Korisničko ime…" value="${esc(ui.q)}"><button class="btn-p" data-act="admnew">➕ Novi korisnik</button><button data-act="admreload" ${adm.busy?'disabled':''}>${adm.busy?'⏳':'🔄'}</button></div>
+  ${adm.err&&adm.err!=='key'?`<div class="card" style="border-color:var(--warn)"><div class="small">⚠ ${esc(adm.err)}</div></div>`:''}
+  ${!adm.list?'<div class="empty">Učitavam korisnike…</div>':l.length?l.map(u=>{const act=u.devs.filter(d=>!d.blocked).length;return`<div class="item"><div class="grow">
+   <div class="row sp"><b>${u.admin?'👑':'👤'} ${esc(u.user)}</b>${admBadge(u)}</div>
+   <div class="small muted">📱 Uređaja ${act} od ${u.max}${u.devs.some(d=>d.blocked)?' · isključenih '+u.devs.filter(d=>d.blocked).length:''}</div>
+   <div class="acts"><button class="btn-s btn-p" data-act="admext" data-u="${esc(u.user)}">⏳ Produži</button><button class="btn-s" data-act="admdev" data-u="${esc(u.user)}">📱 Uređaji</button><button class="btn-s" data-act="admedit" data-u="${esc(u.user)}">✏️</button><button class="btn-s" data-act="admsend" data-u="${esc(u.user)}">📤</button>${u.admin?'':`<button class="btn-s btn-d" data-act="admdel" data-u="${esc(u.user)}">🗑️</button>`}</div></div></div>`}).join(''):'<div class="empty">Nema rezultata.</div>'}
+  <div class="small muted" style="margin:10px 2px">Sve izmene se upisuju u Google tabelu i važe pri sledećoj proveri korisnika (najkasnije za 30 minuta, ili odmah pri prijavi).</div>`;
+}
+$('dlg').addEventListener('close',()=>{if(ui.tab==='korisnici')setTimeout(bgRender,0)});
+function admDlg(html){$('dlgBody').innerHTML=html+`<div class="row" style="margin-top:14px"><button class="grow" data-act="dlgclose">Zatvori</button></div>`;if(!$('dlg').open)$('dlg').showModal()}
+function admSendText(u){return'Atmos Radionica — pristupni podaci\nKorisničko ime: '+u.user+'\nPIN: '+u.pin+'\nLicenca: '+(u.days==null&&u.status==='ok'?'neograničeno':'važi do '+u.exp)+'\nUređaja: najviše '+u.max+'\n\nPreuzmi aplikaciju (Android / Windows):\n'+APP_DL}
+function admShowSend(n){const u=admUser(n);if(!u)return;const t=admSendText(u),ph='';
+  admDlg(`<h3>📤 Pošalji podatke — ${esc(u.user)}</h3><textarea class="fld" id="admTxt" rows="8" readonly>${esc(t)}</textarea>
+   <div class="grid g2" style="margin-top:10px"><button class="btn-v" data-act="admsharev">💜 Viber</button><button data-act="admsharew">🟢 WhatsApp</button><button data-act="admsharec">📋 Kopiraj</button><button data-act="admshare">📤 Podeli</button></div>`)}
+async function admAct(a,d){
+  const n=d.u,u=n&&admUser(n);
+  switch(a){
+    case'admkey':{const v=($('admKeyIn')||{}).value||'';if(!v.trim()){toast('Upiši admin šifru');return}try{localStorage.setItem(ADM_KEY,v.trim())}catch{}adm.err='';adm.list=null;await admCall('list',null,'Otključano ✔');render();return}
+    case'admreload':await admCall('list');return;
+    case'admnew':{const d1=new Date();d1.setFullYear(d1.getFullYear()+1);
+      admDlg(`<h3>➕ Novi korisnik</h3>
+       <label class="l">Korisničko ime</label><input class="fld" id="anU" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="npr. servis.markovic" style="margin-bottom:8px">
+       <label class="l">PIN</label><div class="row" style="gap:6px;margin-bottom:8px"><input class="fld grow" id="anP" value="${admPin()}" autocomplete="off"><button class="btn-s" data-act="admgen" data-t="anP">🎲</button></div>
+       <div class="grid g2"><div><label class="l">Važi do</label><input class="fld" id="anE" type="date" value="${isoDate(d1)}"></div><div><label class="l">Najviše uređaja</label><input class="fld" id="anM" type="number" inputmode="numeric" value="3" min="1"></div></div>
+       <label class="row small" style="margin:8px 0"><input type="checkbox" id="anN" style="width:18px;height:18px"> Bez ograničenja (licenca ne ističe)</label>
+       <button class="btn-p" data-act="admadd" style="width:100%">💾 Dodaj korisnika</button>`);return}
+    case'admgen':{const el=$(d.t);if(el)el.value=admPin();return}
+    case'admadd':{const name=$('anU').value.trim(),pin=$('anP').value.trim(),exp=$('anN').checked?'':$('anE').value,max=$('anM').value;
+      if(!name||!pin){toast('Upiši korisničko ime i PIN');return}
+      if(await admCall('add',{target:name,newPin:pin,exp,max},'Korisnik dodat ✔')){admShowSend(name)}return}
+    case'admext':if(!u)return;
+      admDlg(`<h3>⏳ Produži licencu — ${esc(u.user)}</h3><div class="small muted" style="margin-bottom:10px">Sada: ${u.days==null&&u.status==='ok'?'neograničeno':u.status==='expired'?'istekla '+esc(u.exp)+' (produžava se od danas)':'važi do '+esc(u.exp)}</div>
+       <div class="grid g2"><button class="btn-p" data-act="admextn" data-u="${esc(u.user)}" data-m="1">+1 mesec</button><button class="btn-p" data-act="admextn" data-u="${esc(u.user)}" data-m="3">+3 meseca</button><button class="btn-p" data-act="admextn" data-u="${esc(u.user)}" data-m="6">+6 meseci</button><button class="btn-p" data-act="admextn" data-u="${esc(u.user)}" data-m="12">+1 godina</button></div>
+       <label class="l" style="margin-top:12px">Ili tačan datum</label><div class="row" style="gap:6px"><input class="fld grow" id="aeD" type="date"><button data-act="admextd" data-u="${esc(u.user)}">Postavi</button></div>
+       <button class="btn-s" data-act="admextu" data-u="${esc(u.user)}" style="margin-top:10px;width:100%">♾ Bez ograničenja</button>`);return;
+    case'admextn':if(await admCall('extend',{target:n,months:+d.m},'Licenca produžena ✔'))$('dlg').close();return;
+    case'admextd':{const v=$('aeD').value;if(!v){toast('Izaberi datum');return}if(await admCall('update',{target:n,exp:v},'Datum postavljen ✔'))$('dlg').close();return}
+    case'admextu':if(confirm('Licenca za '+n+' bez ograničenja?')&&await admCall('update',{target:n,exp:''},'Licenca bez ograničenja ✔'))$('dlg').close();return;
+    case'admedit':if(!u)return;
+      admDlg(`<h3>✏️ ${esc(u.user)}</h3>
+       <label class="l">PIN</label><div class="row" style="gap:6px;margin-bottom:8px"><input class="fld grow" id="aiP" value="${esc(u.pin)}" autocomplete="off"><button class="btn-s" data-act="admgen" data-t="aiP">🎲</button></div>
+       <label class="l">Najviše uređaja</label><input class="fld" id="aiM" type="number" inputmode="numeric" min="1" value="${u.max}" style="margin-bottom:10px">
+       <button class="btn-p" data-act="admsave" data-u="${esc(u.user)}" style="width:100%">💾 Sačuvaj</button>
+       <div class="small muted" style="margin-top:8px">Promena PIN-a odjavljuje korisnika na svim uređajima pri sledećoj proveri — pošalji mu nov PIN.</div>`);return;
+    case'admsave':{const pin=$('aiP').value.trim(),max=$('aiM').value,x={target:n,max};if(pin!==u.pin)x.newPin=pin;
+      if(await admCall('update',x,'Sačuvano ✔')){if(x.newPin)admShowSend(n);else $('dlg').close()}return}
+    case'admdev':if(!u)return;
+      admDlg(`<h3>📱 Uređaji — ${esc(u.user)}</h3><div class="small muted" style="margin-bottom:8px">Aktivnih ${u.devs.filter(x=>!x.blocked).length} od ${u.max}. „Oslobodi“ briše uređaj (npr. promenio telefon); „Isključi“ ga trajno blokira.</div>
+       ${u.devs.length?u.devs.map(x=>`<div class="small" style="padding:8px 0;border-bottom:1px solid var(--line)"><div>${x.blocked?'⛔':'✅'} <b>${esc(x.name||'Uređaj')}</b> <span class="muted">· poslednji put ${esc(x.date)} · ID ${esc(x.id.slice(0,6))}…</span></div><div class="row" style="gap:6px;margin-top:6px">${x.blocked?`<button class="btn-s" data-act="admdevx" data-u="${esc(u.user)}" data-id="${x.id}" data-x="unblock">Uključi</button>`:`<button class="btn-s" data-act="admdevx" data-u="${esc(u.user)}" data-id="${x.id}" data-x="block">Isključi</button>`}<button class="btn-s btn-d" data-act="admdevx" data-u="${esc(u.user)}" data-id="${x.id}" data-x="free">Oslobodi</button></div></div>`).join(''):'<div class="small muted">Nema prijavljenih uređaja.</div>'}`);return;
+    case'admdevx':if(d.x==='free'&&!confirm('Osloboditi mesto ovog uređaja?'))return;
+      if(await admCall('device',{target:n,id:d.id,act:d.x},'Sačuvano ✔'))admAct('admdev',{u:n});return;
+    case'admsend':admShowSend(n);return;
+    case'admsharev':{const t=$('admTxt').value;try{await navigator.clipboard.writeText(t)}catch{}location.href='viber://forward?text='+encodeURIComponent(t);return}
+    case'admsharew':window.open('https://wa.me/?text='+encodeURIComponent($('admTxt').value),'_blank');return;
+    case'admsharec':try{await navigator.clipboard.writeText($('admTxt').value);toast('Kopirano ✔')}catch{toast('Kopiranje nije uspelo')}return;
+    case'admshare':shareText('Atmos Radionica',$('admTxt').value);return;
+    case'admdel':if(!u)return;if(confirm('Obrisati korisnika '+n+'? Biće odjavljen na svim uređajima. Podaci njegove radionice ostaju sačuvani na serveru.')&&confirm('Sigurno obrisati '+n+'?'))await admCall('delete',{target:n},'Korisnik obrisan');return;
+  }
+}
+
 /* ---------- SINHRONIZACIJA IZMEĐU UREĐAJA ----------
    Svi uređaji istog naloga dele podatke preko Google Apps Script-a (Code.gs sync-1).
    Šalju se samo izmenjeni zapisi: posle čuvanja (za ~5 s), na svakih 5 min i pri pokretanju.
@@ -1437,6 +1552,7 @@ async function syncNow(manual){
     if(!r.ok)throw new Error('http '+r.status);
     const j=await r.json();
     if(j.status==='limit'){clearAuth();lock(limitMsg(j));return}
+    if(j.status==='locked'){syMsg='Server privremeno odbija prijavu (previše pogrešnih PIN-ova) — pokušaću kasnije';return}
     if(j.status==='blocked'){clearAuth();lock(blockedMsg);return}
     if(j.status==='invalid'){clearAuth();lock('PIN više nije važeći. Prijavi se ponovo.');return}
     if(j.status!=='ok'&&j.status!=='expired'||j.rev==null){syMsg=j.v&&j.v!=='sync-1'?'Server još nema sinhronizaciju (Code.gs)':'Greška servera';sy.err=syMsg;syStore();return}

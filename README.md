@@ -49,6 +49,9 @@ Potreban je Google Chrome (na većini telefona je već instaliran).
 
 ## Verzije
 
+### 1.9.0
+- Zaštita prijave: posle 5 pogrešnih PIN-ova nalog se zaključava na 15 minuta
+
 ### 1.8.5
 - Podešavanja: rezervna kopija i sinhronizacija su jedna do druge, ažuriranje aplikacije je na dnu
 
