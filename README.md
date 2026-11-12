@@ -18,7 +18,7 @@ Podaci se čuvaju na uređaju, a svi uređaji istog naloga se međusobno sinhron
 - **PDV** — opciono (20% / 10%), cene sa ili bez PDV-a
 - **Garancija** — broj dana se štampa na računu
 - **Sinhronizacija** — isti podaci na svim uređajima naloga (telefon, tablet, računar)
-- **Backup** — dnevne interne kopije, automatski upis u folder (Windows), izvoz / uvoz baze (JSON), CSV naloga i vozila
+- **Backup** — dnevne interne kopije, automatski upis u folder jednom dnevno (Windows), izvoz / uvoz baze (JSON), CSV naloga i vozila
 - **Automatsko ažuriranje** — nova verzija stiže sama, bez ponovne instalacije
 
 ## Instalacija
@@ -46,6 +46,10 @@ Potreban je Google Chrome (na većini telefona je već instaliran).
 - Ako prelaziš sa ranije verzije u pregledaču: tamo klikni **Izvezi podatke (JSON)**, pa u aplikaciji **Podešavanja → ⬆ Uvezi bazu**.
 
 ## Verzije
+
+### 1.7.1
+- Backup u folder (Windows) upisuje se jednom dnevno
+- Uklonjeno „Podeli kopiju“ — ostaju izvoz i uvoz baze
 
 ### 1.7.0
 - **Sinhronizacija između uređaja** — svi uređaji istog naloga dele naloge, vozila, podsetnike, delove, mehaničare i podatke radionice. Izmene se šalju par sekundi posle čuvanja i na svakih 5 minuta; bez interneta sve radi, a izmene odlaze kad se veza vrati. Stanje i dugme **Sinhronizuj sada** su u Podešavanjima.
