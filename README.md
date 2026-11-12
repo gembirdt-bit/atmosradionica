@@ -10,6 +10,8 @@ Podaci se čuvaju na uređaju, a svi uređaji istog naloga se međusobno sinhron
 - **Štampa i PDF** — radni nalog, **predračun** i **račun** jednim klikom, sa **logom radionice** i poljima za **potpis mehaničara i mušterije**; A4 sa marginama; **Podeli PDF** u Viber, WhatsApp, e-poštu, Drive…
 - **Obaveštenje klijentu** — kad je vozilo završeno, poruka na **Viber** / WhatsApp / SMS (tekst se podešava)
 - **Delovi** — poručivanje: Poručiti → Poručeno → Stiglo → U radionici, sa količinom, dobavljačem i vozilom; deljenje liste za poručivanje
+- **Mušterije** — imenik sa više vozila po mušteriji, kontaktom, istorijom i dugom (za naplatu)
+- **NBS IPS QR** — QR kod za plaćanje m-bankingom na predračunu i računu
 - **Baza vozila** — tablica, **VIN** (provera i prepoznavanje marke), marka, model, godina, kubikaža, snaga (kW / KS), gorivo, kilometraža, vlasnik, telefon, servisna istorija
 - **Skeniranje saobraćajne dozvole kamerom** — automatski popunjava podatke o vozilu i vlasniku (uvek proveri pre čuvanja)
 - **Mehaničari** — evidencija, dodela naloga, izveštaj po mehaničaru
@@ -46,6 +48,10 @@ Potreban je Google Chrome (na većini telefona je već instaliran).
 - Ako prelaziš sa ranije verzije u pregledaču: tamo klikni **Izvezi podatke (JSON)**, pa u aplikaciji **Podešavanja → ⬆ Uvezi bazu**.
 
 ## Verzije
+
+### 1.8.0
+- **Mušterije** — imenik: jedna mušterija sa više vozila, kontakt (poziv, Viber, WhatsApp, SMS), adresa i PIB za firme, istorija naloga, plaćeno i **za naplatu** po mušteriji. Postojeća vozila se sama povezuju sa mušterijama po imenu i telefonu vlasnika.
+- **NBS IPS QR kod** na predračunu i neplaćenom računu — mušterija plaća skeniranjem u m-bankingu. Uključuje se u Podešavanja → Podaci radionice (potreban ispravan tekući račun).
 
 ### 1.7.1
 - Backup u folder (Windows) upisuje se jednom dnevno

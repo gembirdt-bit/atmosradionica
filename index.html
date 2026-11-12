@@ -77,11 +77,11 @@ details.raw{margin:0 0 12px;font-size:.8rem;color:var(--muted)}details.raw pre{w
 .doc h1{font-size:22px;margin:0}.doc h2{font-size:13px;margin:14px 0 4px;text-transform:uppercase;color:#444;border-bottom:1px solid #999;padding-bottom:2px}
 .doc table{width:100%;border-collapse:collapse}.doc .items th{background:#eee;text-align:left;border:1px solid #999;padding:5px 6px;font-size:12px}.doc .items td{border:1px solid #bbb;padding:5px 6px;vertical-align:top}
 .doc .r{text-align:right}.doc .c{text-align:center}.doc .hd{display:flex;justify-content:space-between;gap:20px;border-bottom:2px solid #111;padding-bottom:10px}
-.doc .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}.doc .tot{margin-left:auto;width:290px;margin-top:8px}.doc .tot td{padding:3px 6px}.doc .tot .g td{font-weight:700;font-size:15px;border-top:2px solid #111}
+.doc .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}.doc .tot{margin-left:auto;width:290px;margin-top:8px}.doc .totrow{display:flex;gap:14px;align-items:flex-start;justify-content:space-between}.doc .ipsqr{display:flex;gap:10px;align-items:center;margin-top:8px;max-width:330px;font-size:11px;line-height:1.35;break-inside:avoid;page-break-inside:avoid}.doc .ipsqr svg{flex:none;width:118px;height:118px}.doc .tot td{padding:3px 6px}.doc .tot .g td{font-weight:700;font-size:15px;border-top:2px solid #111}
 .doc .sig{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:46px}.doc .sig div{border-top:1px solid #111;text-align:center;padding-top:4px;font-size:12px}
 .doc .st{display:inline-block;border:1.5px solid #111;padding:1px 8px;border-radius:4px;font-weight:700;font-size:12px}
 .doc p{margin:4px 0}
-@media(max-width:560px){.g4{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr}.doc{padding:14px;margin:0}.doc .two{grid-template-columns:1fr}.doc .tot{width:100%}}
+@media(max-width:560px){.g4{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr}.doc{padding:14px;margin:0}.doc .two{grid-template-columns:1fr}.doc .tot{width:100%}.doc .totrow{flex-direction:column-reverse}}
 @media(min-width:900px){
  body{padding-bottom:30px;padding-left:210px}
  nav{top:0;bottom:0;width:210px;right:auto;flex-direction:column;border-top:0;border-right:1px solid var(--line);padding:70px 8px 8px;overflow-y:auto;gap:2px}
@@ -183,6 +183,7 @@ body{max-width:100vw;overflow-x:clip;touch-action:pan-y pinch-zoom}
   <button data-tab="nalozi"><span>📋</span>Nalozi</button>
   <button data-tab="vozila"><span>🚗</span>Vozila</button>
   <button data-tab="podsetnici"><span>⏰</span>Podsetnici</button>
+  <button data-tab="musterije" class="sec"><span>👥</span>Mušterije</button>
   <button data-tab="delovi" class="sec"><span>📦</span>Delovi</button>
   <button data-tab="mehanicari" class="sec"><span>🔧</span>Mehaničari</button>
   <button data-tab="izvestaji" class="sec"><span>📊</span>Izveštaji</button>
@@ -195,7 +196,7 @@ body{max-width:100vw;overflow-x:clip;touch-action:pan-y pinch-zoom}
 <div id="docView" hidden><div class="dtool"><button class="btn-p" data-act="print">🖨️ Štampaj</button><button class="btn-v" data-act="docshare">📤 Podeli PDF</button><button data-act="docclose">✕ Zatvori</button></div><div class="doc" id="docBody"></div></div>
 <div class="upd" id="updBar" hidden><span class="grow">🔄 Dostupna je nova verzija aplikacije.</span><button data-act="updnow">Osveži</button></div>
 <div class="toast" id="toast"></div>
-<datalist id="vehList"></datalist><datalist id="itemList"></datalist>
+<datalist id="vehList"></datalist><datalist id="cliList"></datalist><datalist id="itemList"></datalist>
 <datalist id="remList"><option value="Redovni servis"><option value="Mali servis"><option value="Veliki servis"><option value="Zamena ulja i filtera"><option value="Zamena kaiša / lanca"><option value="Kočnice"><option value="Gume — sezonska zamena"><option value="Tehnički pregled"><option value="Registracija"><option value="Akumulator"><option value="Klima servis"></datalist>
 <input type="file" id="impFile" accept=".json,.txt,application/json,text/plain" hidden>
 <input type="file" id="scanFile" accept="image/*" hidden>
@@ -243,9 +244,13 @@ body{max-width:100vw;overflow-x:clip;touch-action:pan-y pinch-zoom}
 })();
 </script>
 <script>
+/* QR kod — QRCode for JavaScript (c) 2009 Kazuhiko Arase, MIT licenca; izmena: UTF-8. Izvor: tools/qr/ (npm run: esbuild tools/qr/entry.js --bundle --minify) */
+(()=>{var m=(t,e)=>()=>{try{return e||t((e={exports:{}}).exports,e),e.exports}catch(i){throw e=0,i}};var k=m((mt,G)=>{G.exports={MODE_NUMBER:1,MODE_ALPHA_NUM:2,MODE_8BIT_BYTE:4,MODE_KANJI:8}});var X=m((Et,U)=>{var st=k();function K(t){this.mode=st.MODE_8BIT_BYTE,this.bytes=Array.from(new TextEncoder().encode(t))}K.prototype={getLength:function(){return this.bytes.length},write:function(t){for(var e=0;e<this.bytes.length;e++)t.put(this.bytes[e],8)}};U.exports=K});var N=m((dt,x)=>{var v={glog:function(t){if(t<1)throw new Error("glog("+t+")");return v.LOG_TABLE[t]},gexp:function(t){for(;t<0;)t+=255;for(;t>=256;)t-=255;return v.EXP_TABLE[t]},EXP_TABLE:new Array(256),LOG_TABLE:new Array(256)};for(h=0;h<8;h++)v.EXP_TABLE[h]=1<<h;var h;for(h=8;h<256;h++)v.EXP_TABLE[h]=v.EXP_TABLE[h-4]^v.EXP_TABLE[h-5]^v.EXP_TABLE[h-6]^v.EXP_TABLE[h-8];var h;for(h=0;h<255;h++)v.LOG_TABLE[v.EXP_TABLE[h]]=h;var h;x.exports=v});var I=m((Tt,Y)=>{var p=N();function _(t,e){if(t.length===void 0)throw new Error(t.length+"/"+e);for(var i=0;i<t.length&&t[i]===0;)i++;this.num=new Array(t.length-i+e);for(var r=0;r<t.length-i;r++)this.num[r]=t[r+i]}_.prototype={get:function(t){return this.num[t]},getLength:function(){return this.num.length},multiply:function(t){for(var e=new Array(this.getLength()+t.getLength()-1),i=0;i<this.getLength();i++)for(var r=0;r<t.getLength();r++)e[i+r]^=p.gexp(p.glog(this.get(i))+p.glog(t.get(r)));return new _(e,0)},mod:function(t){if(this.getLength()-t.getLength()<0)return this;for(var e=p.glog(this.get(0))-p.glog(t.get(0)),i=new Array(this.getLength()),r=0;r<this.getLength();r++)i[r]=this.get(r);for(var n=0;n<t.getLength();n++)i[n]^=p.gexp(p.glog(t.get(n))+e);return new _(i,0).mod(t)}};Y.exports=_});var F=m((Bt,J)=>{J.exports={PATTERN000:0,PATTERN001:1,PATTERN010:2,PATTERN011:3,PATTERN100:4,PATTERN101:5,PATTERN110:6,PATTERN111:7}});var Z=m((Lt,W)=>{var g=k(),V=I(),ut=N(),T=F(),f={PATTERN_POSITION_TABLE:[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]],G15:1335,G18:7973,G15_MASK:21522,getBCHTypeInfo:function(t){for(var e=t<<10;f.getBCHDigit(e)-f.getBCHDigit(f.G15)>=0;)e^=f.G15<<f.getBCHDigit(e)-f.getBCHDigit(f.G15);return(t<<10|e)^f.G15_MASK},getBCHTypeNumber:function(t){for(var e=t<<12;f.getBCHDigit(e)-f.getBCHDigit(f.G18)>=0;)e^=f.G18<<f.getBCHDigit(e)-f.getBCHDigit(f.G18);return t<<12|e},getBCHDigit:function(t){for(var e=0;t!==0;)e++,t>>>=1;return e},getPatternPosition:function(t){return f.PATTERN_POSITION_TABLE[t-1]},getMask:function(t,e,i){switch(t){case T.PATTERN000:return(e+i)%2===0;case T.PATTERN001:return e%2===0;case T.PATTERN010:return i%3===0;case T.PATTERN011:return(e+i)%3===0;case T.PATTERN100:return(Math.floor(e/2)+Math.floor(i/3))%2===0;case T.PATTERN101:return e*i%2+e*i%3===0;case T.PATTERN110:return(e*i%2+e*i%3)%2===0;case T.PATTERN111:return(e*i%3+(e+i)%2)%2===0;default:throw new Error("bad maskPattern:"+t)}},getErrorCorrectPolynomial:function(t){for(var e=new V([1],0),i=0;i<t;i++)e=e.multiply(new V([1,ut.gexp(i)],0));return e},getLengthInBits:function(t,e){if(1<=e&&e<10)switch(t){case g.MODE_NUMBER:return 10;case g.MODE_ALPHA_NUM:return 9;case g.MODE_8BIT_BYTE:return 8;case g.MODE_KANJI:return 8;default:throw new Error("mode:"+t)}else if(e<27)switch(t){case g.MODE_NUMBER:return 12;case g.MODE_ALPHA_NUM:return 11;case g.MODE_8BIT_BYTE:return 16;case g.MODE_KANJI:return 10;default:throw new Error("mode:"+t)}else if(e<41)switch(t){case g.MODE_NUMBER:return 14;case g.MODE_ALPHA_NUM:return 13;case g.MODE_8BIT_BYTE:return 16;case g.MODE_KANJI:return 12;default:throw new Error("mode:"+t)}else throw new Error("type:"+e)},getLostPoint:function(t){var e=t.getModuleCount(),i=0,r=0,n=0;for(r=0;r<e;r++)for(n=0;n<e;n++){for(var a=0,o=t.isDark(r,n),s=-1;s<=1;s++)if(!(r+s<0||e<=r+s))for(var u=-1;u<=1;u++)n+u<0||e<=n+u||s===0&&u===0||o===t.isDark(r+s,n+u)&&a++;a>5&&(i+=3+a-5)}for(r=0;r<e-1;r++)for(n=0;n<e-1;n++){var l=0;t.isDark(r,n)&&l++,t.isDark(r+1,n)&&l++,t.isDark(r,n+1)&&l++,t.isDark(r+1,n+1)&&l++,(l===0||l===4)&&(i+=3)}for(r=0;r<e;r++)for(n=0;n<e-6;n++)t.isDark(r,n)&&!t.isDark(r,n+1)&&t.isDark(r,n+2)&&t.isDark(r,n+3)&&t.isDark(r,n+4)&&!t.isDark(r,n+5)&&t.isDark(r,n+6)&&(i+=40);for(n=0;n<e;n++)for(r=0;r<e-6;r++)t.isDark(r,n)&&!t.isDark(r+1,n)&&t.isDark(r+2,n)&&t.isDark(r+3,n)&&t.isDark(r+4,n)&&!t.isDark(r+5,n)&&t.isDark(r+6,n)&&(i+=40);var L=0;for(n=0;n<e;n++)for(r=0;r<e;r++)t.isDark(r,n)&&L++;var A=Math.abs(100*L/e/e-50)/5;return i+=A*10,i}};W.exports=f});var y=m((pt,$)=>{$.exports={L:1,M:0,Q:3,H:2}});var q=m((At,z)=>{var c=y();function E(t,e){this.totalCount=t,this.dataCount=e}E.RS_BLOCK_TABLE=[[1,26,19],[1,26,16],[1,26,13],[1,26,9],[1,44,34],[1,44,28],[1,44,22],[1,44,16],[1,70,55],[1,70,44],[2,35,17],[2,35,13],[1,100,80],[2,50,32],[2,50,24],[4,25,9],[1,134,108],[2,67,43],[2,33,15,2,34,16],[2,33,11,2,34,12],[2,86,68],[4,43,27],[4,43,19],[4,43,15],[2,98,78],[4,49,31],[2,32,14,4,33,15],[4,39,13,1,40,14],[2,121,97],[2,60,38,2,61,39],[4,40,18,2,41,19],[4,40,14,2,41,15],[2,146,116],[3,58,36,2,59,37],[4,36,16,4,37,17],[4,36,12,4,37,13],[2,86,68,2,87,69],[4,69,43,1,70,44],[6,43,19,2,44,20],[6,43,15,2,44,16],[4,101,81],[1,80,50,4,81,51],[4,50,22,4,51,23],[3,36,12,8,37,13],[2,116,92,2,117,93],[6,58,36,2,59,37],[4,46,20,6,47,21],[7,42,14,4,43,15],[4,133,107],[8,59,37,1,60,38],[8,44,20,4,45,21],[12,33,11,4,34,12],[3,145,115,1,146,116],[4,64,40,5,65,41],[11,36,16,5,37,17],[11,36,12,5,37,13],[5,109,87,1,110,88],[5,65,41,5,66,42],[5,54,24,7,55,25],[11,36,12],[5,122,98,1,123,99],[7,73,45,3,74,46],[15,43,19,2,44,20],[3,45,15,13,46,16],[1,135,107,5,136,108],[10,74,46,1,75,47],[1,50,22,15,51,23],[2,42,14,17,43,15],[5,150,120,1,151,121],[9,69,43,4,70,44],[17,50,22,1,51,23],[2,42,14,19,43,15],[3,141,113,4,142,114],[3,70,44,11,71,45],[17,47,21,4,48,22],[9,39,13,16,40,14],[3,135,107,5,136,108],[3,67,41,13,68,42],[15,54,24,5,55,25],[15,43,15,10,44,16],[4,144,116,4,145,117],[17,68,42],[17,50,22,6,51,23],[19,46,16,6,47,17],[2,139,111,7,140,112],[17,74,46],[7,54,24,16,55,25],[34,37,13],[4,151,121,5,152,122],[4,75,47,14,76,48],[11,54,24,14,55,25],[16,45,15,14,46,16],[6,147,117,4,148,118],[6,73,45,14,74,46],[11,54,24,16,55,25],[30,46,16,2,47,17],[8,132,106,4,133,107],[8,75,47,13,76,48],[7,54,24,22,55,25],[22,45,15,13,46,16],[10,142,114,2,143,115],[19,74,46,4,75,47],[28,50,22,6,51,23],[33,46,16,4,47,17],[8,152,122,4,153,123],[22,73,45,3,74,46],[8,53,23,26,54,24],[12,45,15,28,46,16],[3,147,117,10,148,118],[3,73,45,23,74,46],[4,54,24,31,55,25],[11,45,15,31,46,16],[7,146,116,7,147,117],[21,73,45,7,74,46],[1,53,23,37,54,24],[19,45,15,26,46,16],[5,145,115,10,146,116],[19,75,47,10,76,48],[15,54,24,25,55,25],[23,45,15,25,46,16],[13,145,115,3,146,116],[2,74,46,29,75,47],[42,54,24,1,55,25],[23,45,15,28,46,16],[17,145,115],[10,74,46,23,75,47],[10,54,24,35,55,25],[19,45,15,35,46,16],[17,145,115,1,146,116],[14,74,46,21,75,47],[29,54,24,19,55,25],[11,45,15,46,46,16],[13,145,115,6,146,116],[14,74,46,23,75,47],[44,54,24,7,55,25],[59,46,16,1,47,17],[12,151,121,7,152,122],[12,75,47,26,76,48],[39,54,24,14,55,25],[22,45,15,41,46,16],[6,151,121,14,152,122],[6,75,47,34,76,48],[46,54,24,10,55,25],[2,45,15,64,46,16],[17,152,122,4,153,123],[29,74,46,14,75,47],[49,54,24,10,55,25],[24,45,15,46,46,16],[4,152,122,18,153,123],[13,74,46,32,75,47],[48,54,24,14,55,25],[42,45,15,32,46,16],[20,147,117,4,148,118],[40,75,47,7,76,48],[43,54,24,22,55,25],[10,45,15,67,46,16],[19,148,118,6,149,119],[18,75,47,31,76,48],[34,54,24,34,55,25],[20,45,15,61,46,16]];E.getRSBlocks=function(t,e){var i=E.getRsBlockTable(t,e);if(i===void 0)throw new Error("bad rs block @ typeNumber:"+t+"/errorCorrectLevel:"+e);for(var r=i.length/3,n=[],a=0;a<r;a++)for(var o=i[a*3+0],s=i[a*3+1],u=i[a*3+2],l=0;l<o;l++)n.push(new E(s,u));return n};E.getRsBlockTable=function(t,e){switch(e){case c.L:return E.RS_BLOCK_TABLE[(t-1)*4+0];case c.M:return E.RS_BLOCK_TABLE[(t-1)*4+1];case c.Q:return E.RS_BLOCK_TABLE[(t-1)*4+2];case c.H:return E.RS_BLOCK_TABLE[(t-1)*4+3];default:return}};z.exports=E});var et=m((Pt,tt)=>{function j(){this.buffer=[],this.length=0}j.prototype={get:function(t){var e=Math.floor(t/8);return(this.buffer[e]>>>7-t%8&1)==1},put:function(t,e){for(var i=0;i<e;i++)this.putBit((t>>>e-i-1&1)==1)},getLengthInBits:function(){return this.length},putBit:function(t){var e=Math.floor(this.length/8);this.buffer.length<=e&&this.buffer.push(0),t&&(this.buffer[e]|=128>>>this.length%8),this.length++}};tt.exports=j});var at=m((Dt,it)=>{var ht=X(),B=Z(),ft=I(),rt=q(),nt=et();function d(t,e){this.typeNumber=t,this.errorCorrectLevel=e,this.modules=null,this.moduleCount=0,this.dataCache=null,this.dataList=[]}d.prototype={addData:function(t){var e=new ht(t);this.dataList.push(e),this.dataCache=null},isDark:function(t,e){if(t<0||this.moduleCount<=t||e<0||this.moduleCount<=e)throw new Error(t+","+e);return this.modules[t][e]},getModuleCount:function(){return this.moduleCount},make:function(){if(this.typeNumber<1){var t=1;for(t=1;t<40;t++){for(var e=rt.getRSBlocks(t,this.errorCorrectLevel),i=new nt,r=0,n=0;n<e.length;n++)r+=e[n].dataCount;for(var a=0;a<this.dataList.length;a++){var o=this.dataList[a];i.put(o.mode,4),i.put(o.getLength(),B.getLengthInBits(o.mode,t)),o.write(i)}if(i.getLengthInBits()<=r*8)break}this.typeNumber=t}this.makeImpl(!1,this.getBestMaskPattern())},makeImpl:function(t,e){this.moduleCount=this.typeNumber*4+17,this.modules=new Array(this.moduleCount);for(var i=0;i<this.moduleCount;i++){this.modules[i]=new Array(this.moduleCount);for(var r=0;r<this.moduleCount;r++)this.modules[i][r]=null}this.setupPositionProbePattern(0,0),this.setupPositionProbePattern(this.moduleCount-7,0),this.setupPositionProbePattern(0,this.moduleCount-7),this.setupPositionAdjustPattern(),this.setupTimingPattern(),this.setupTypeInfo(t,e),this.typeNumber>=7&&this.setupTypeNumber(t),this.dataCache===null&&(this.dataCache=d.createData(this.typeNumber,this.errorCorrectLevel,this.dataList)),this.mapData(this.dataCache,e)},setupPositionProbePattern:function(t,e){for(var i=-1;i<=7;i++)if(!(t+i<=-1||this.moduleCount<=t+i))for(var r=-1;r<=7;r++)e+r<=-1||this.moduleCount<=e+r||(0<=i&&i<=6&&(r===0||r===6)||0<=r&&r<=6&&(i===0||i===6)||2<=i&&i<=4&&2<=r&&r<=4?this.modules[t+i][e+r]=!0:this.modules[t+i][e+r]=!1)},getBestMaskPattern:function(){for(var t=0,e=0,i=0;i<8;i++){this.makeImpl(!0,i);var r=B.getLostPoint(this);(i===0||t>r)&&(t=r,e=i)}return e},createMovieClip:function(t,e,i){var r=t.createEmptyMovieClip(e,i),n=1;this.make();for(var a=0;a<this.modules.length;a++)for(var o=a*n,s=0;s<this.modules[a].length;s++){var u=s*n,l=this.modules[a][s];l&&(r.beginFill(0,100),r.moveTo(u,o),r.lineTo(u+n,o),r.lineTo(u+n,o+n),r.lineTo(u,o+n),r.endFill())}return r},setupTimingPattern:function(){for(var t=8;t<this.moduleCount-8;t++)this.modules[t][6]===null&&(this.modules[t][6]=t%2===0);for(var e=8;e<this.moduleCount-8;e++)this.modules[6][e]===null&&(this.modules[6][e]=e%2===0)},setupPositionAdjustPattern:function(){for(var t=B.getPatternPosition(this.typeNumber),e=0;e<t.length;e++)for(var i=0;i<t.length;i++){var r=t[e],n=t[i];if(this.modules[r][n]===null)for(var a=-2;a<=2;a++)for(var o=-2;o<=2;o++)Math.abs(a)===2||Math.abs(o)===2||a===0&&o===0?this.modules[r+a][n+o]=!0:this.modules[r+a][n+o]=!1}},setupTypeNumber:function(t){for(var e=B.getBCHTypeNumber(this.typeNumber),i,r=0;r<18;r++)i=!t&&(e>>r&1)===1,this.modules[Math.floor(r/3)][r%3+this.moduleCount-8-3]=i;for(var n=0;n<18;n++)i=!t&&(e>>n&1)===1,this.modules[n%3+this.moduleCount-8-3][Math.floor(n/3)]=i},setupTypeInfo:function(t,e){for(var i=this.errorCorrectLevel<<3|e,r=B.getBCHTypeInfo(i),n,a=0;a<15;a++)n=!t&&(r>>a&1)===1,a<6?this.modules[a][8]=n:a<8?this.modules[a+1][8]=n:this.modules[this.moduleCount-15+a][8]=n;for(var o=0;o<15;o++)n=!t&&(r>>o&1)===1,o<8?this.modules[8][this.moduleCount-o-1]=n:o<9?this.modules[8][15-o-1+1]=n:this.modules[8][15-o-1]=n;this.modules[this.moduleCount-8][8]=!t},mapData:function(t,e){for(var i=-1,r=this.moduleCount-1,n=7,a=0,o=this.moduleCount-1;o>0;o-=2)for(o===6&&o--;;){for(var s=0;s<2;s++)if(this.modules[r][o-s]===null){var u=!1;a<t.length&&(u=(t[a]>>>n&1)===1);var l=B.getMask(e,r,o-s);l&&(u=!u),this.modules[r][o-s]=u,n--,n===-1&&(a++,n=7)}if(r+=i,r<0||this.moduleCount<=r){r-=i,i=-i;break}}}};d.PAD0=236;d.PAD1=17;d.createData=function(t,e,i){for(var r=rt.getRSBlocks(t,e),n=new nt,a=0;a<i.length;a++){var o=i[a];n.put(o.mode,4),n.put(o.getLength(),B.getLengthInBits(o.mode,t)),o.write(n)}for(var s=0,u=0;u<r.length;u++)s+=r[u].dataCount;if(n.getLengthInBits()>s*8)throw new Error("code length overflow. ("+n.getLengthInBits()+">"+s*8+")");for(n.getLengthInBits()+4<=s*8&&n.put(0,4);n.getLengthInBits()%8!==0;)n.putBit(!1);for(;!(n.getLengthInBits()>=s*8||(n.put(d.PAD0,8),n.getLengthInBits()>=s*8));)n.put(d.PAD1,8);return d.createBytes(n,r)};d.createBytes=function(t,e){for(var i=0,r=0,n=0,a=new Array(e.length),o=new Array(e.length),s=0;s<e.length;s++){var u=e[s].dataCount,l=e[s].totalCount-u;r=Math.max(r,u),n=Math.max(n,l),a[s]=new Array(u);for(var L=0;L<a[s].length;L++)a[s][L]=255&t.buffer[L+i];i+=u;var A=B.getErrorCorrectPolynomial(l),ot=new ft(a[s],A.getLength()-1),O=ot.mod(A);o[s]=new Array(A.getLength()-1);for(var P=0;P<o[s].length;P++){var Q=P+O.getLength()-o[s].length;o[s][P]=Q>=0?O.get(Q):0}}for(var H=0,C=0;C<e.length;C++)H+=e[C].totalCount;for(var b=new Array(H),S=0,D=0;D<r;D++)for(var w=0;w<e.length;w++)D<a[w].length&&(b[S++]=a[w][D]);for(var M=0;M<n;M++)for(var R=0;R<e.length;R++)M<o[R].length&&(b[S++]=o[R][M]);return b};it.exports=d});var lt=at(),gt=y();window.AtmosQR={matrix:function(t){var e=new lt(-1,gt.M);e.addData(t),e.make();for(var i=e.getModuleCount(),r=[],n=0;n<i;n++){r.push([]);for(var a=0;a<i;a++)r[n].push(e.isDark(n,a))}return r},svg:function(t,e){for(var i=this.matrix(t),r=i.length,n=4,a=r+n*2,o="",s=0;s<r;s++)for(var u=0;u<r;u++)i[s][u]&&(o+="M"+(u+n)+" "+(s+n)+"h1v1h-1z");return'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+a+" "+a+'" width="'+(e||132)+'" height="'+(e||132)+'" shape-rendering="crispEdges"><rect width="'+a+'" height="'+a+'" fill="#fff"/><path d="'+o+'" fill="#000"/></svg>'}};})();
+</script>
+<script>
 'use strict';
 if(window.ATMOS_BLOCKED)throw new Error('Atmos Radionica: otvori Android ili Windows aplikaciju');
-const VER='1.7.1';
+const VER='1.8.0';
 let authState='locked'; /* locked = mora prijava; ok = licenca važi; expired = licenca istekla (samo pregled) */
 let RO=true; /* režim samo za pregled dok se ne potvrdi prijava */
 const $=id=>document.getElementById(id);
@@ -272,13 +277,13 @@ const statCls={bad:'b-bad',warn:'b-warn',ok:'b-ok',n:'b-n'};
 
 /* ---------- PODACI ---------- */
 const DEF_MSG='Poštovani {ime}, Vaše vozilo {tablica} ({vozilo}) je završeno i spremno za preuzimanje. Iznos: {iznos}.\n{radionica}{telefon}';
-const DEF_SET=()=>({theme:'dark',accent:'#ea580c',fs:'m',shop:{name:'',addr:'',city:'',phone:'',email:'',pib:'',mb:'',acc:'',bank:''},pdvRate:0,pdvIncl:true,labourRate:0,warnDays:14,warnKm:1000,autoRem:true,remMonths:12,remKm:10000,valid:7,docNote:'',invNote:'',backupDays:7,snapKeep:7,lastExport:'',lastFolder:'',fbName:'',notif:false,lastNotif:'',logo:'',sig:true,autoNotify:true,cc:'381',msgDone:DEF_MSG,warranty:0});
-const fresh=()=>({v:1,settings:DEF_SET(),mechs:[],vehicles:[],orders:[],reminders:[],parts:[],counters:{}});
-function norm(d){const s=d.settings||{};d.settings=Object.assign(DEF_SET(),s);d.settings.shop=Object.assign(DEF_SET().shop,s.shop||{});['mechs','vehicles','orders','reminders','parts'].forEach(k=>d[k]=Array.isArray(d[k])?d[k]:[]);d.counters=d.counters||{};return d}
+const DEF_SET=()=>({theme:'dark',accent:'#ea580c',fs:'m',shop:{name:'',addr:'',city:'',phone:'',email:'',pib:'',mb:'',acc:'',bank:''},pdvRate:0,pdvIncl:true,labourRate:0,warnDays:14,warnKm:1000,autoRem:true,remMonths:12,remKm:10000,valid:7,docNote:'',invNote:'',backupDays:7,snapKeep:7,lastExport:'',lastFolder:'',fbName:'',notif:false,lastNotif:'',logo:'',sig:true,autoNotify:true,cc:'381',msgDone:DEF_MSG,warranty:0,ipsQr:true});
+const fresh=()=>({v:1,settings:DEF_SET(),mechs:[],vehicles:[],orders:[],reminders:[],parts:[],clients:[],counters:{}});
+function norm(d){const s=d.settings||{};d.settings=Object.assign(DEF_SET(),s);d.settings.shop=Object.assign(DEF_SET().shop,s.shop||{});['mechs','vehicles','orders','reminders','parts','clients'].forEach(k=>d[k]=Array.isArray(d[k])?d[k]:[]);d.counters=d.counters||{};return d}
 function load(){try{const r=JSON.parse(localStorage.getItem(KEY));if(r&&typeof r==='object')return norm(r)}catch{}return fresh()}
 let db=load();
 const S=()=>db.settings;
-const hasData=()=>db.vehicles.length||db.orders.length||db.reminders.length||db.mechs.length||db.parts.length;
+const hasData=()=>db.vehicles.length||db.orders.length||db.reminders.length||db.mechs.length||db.parts.length||db.clients.length;
 function persist(){if(RO)return true;try{localStorage.setItem(KEY,JSON.stringify(db));if(typeof syncSoon==='function')syncSoon();return true}catch{toast('Greška pri čuvanju (memorija puna?) — napravi izvoz!');return false}}
 let bkT=null;
 /* backup u folder: najviše jednom dnevno (ručno „Backup sada“ upisuje uvek) */
@@ -365,7 +370,7 @@ function totHtml(t){const row=(l,v,b)=>`<div class="row sp" style="padding:3px 0
 
 /* ---------- UI STANJE ---------- */
 const ui={tab:'pregled',q:'',st:'all',mech:'',rp:'m',rmon:todayStr().slice(0,7),ry:String(new Date().getFullYear()),remTab:'act',pst:'all'};
-const SEC=['vise','delovi','mehanicari','izvestaji','podesavanja'];
+const SEC=['vise','musterije','delovi','mehanicari','izvestaji','podesavanja'];
 const ACCS=['#ea580c','#2563eb','#16a34a','#dc2626','#7c3aed','#0891b2','#475569'];
 function applyTheme(){const s=S();document.documentElement.dataset.theme=s.theme==='auto'?(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'):s.theme;
   document.documentElement.style.setProperty('--acc',s.accent);document.body.className=(s.fs==='l'?'fs-l':s.fs==='s'?'fs-s':'')+(RO?' ro':'')+(authState==='locked'?' locked':'');
@@ -375,11 +380,12 @@ function render(){
   applyTheme();
   $('shopName').textContent=S().shop.name||'';
   $('vehList').innerHTML=db.vehicles.map(v=>`<option value="${esc(vehLabel(v))}">`).join('');
+  $('cliList').innerHTML=db.clients.map(c=>`<option value="${esc(c.name)}">${esc(c.phone||'')}</option>`).join('');
   const names=new Set();db.orders.forEach(o=>(o.items||[]).forEach(i=>i.name&&names.add(i.name)));$('itemList').innerHTML=[...names].slice(-300).map(n=>`<option value="${esc(n)}">`).join('');
   document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.tab===ui.tab||(b.dataset.tab==='vise'&&SEC.includes(ui.tab)&&innerWidth<900)));
-  $('fab').style.display=['pregled','nalozi','vozila','podsetnici','delovi','mehanicari'].includes(ui.tab)&&!RO?'block':'none';
+  $('fab').style.display=['pregled','nalozi','vozila','musterije','podsetnici','delovi','mehanicari'].includes(ui.tab)&&!RO?'block':'none';
   updateBadge();
-  const P={pregled:pgPregled,nalozi:pgNalozi,vozila:pgVozila,podsetnici:pgPodsetnici,delovi:pgDelovi,mehanicari:pgMeh,izvestaji:pgIzvestaji,vise:pgVise,podesavanja:pgPodesavanja};
+  const P={pregled:pgPregled,nalozi:pgNalozi,vozila:pgVozila,musterije:pgMusterije,podsetnici:pgPodsetnici,delovi:pgDelovi,mehanicari:pgMeh,izvestaji:pgIzvestaji,vise:pgVise,podesavanja:pgPodesavanja};
   $('view').innerHTML=P[ui.tab]();
 }
 const stBadge=s=>{const x=ST[s]||ST.uzet;return`<span class="badge" style="background:${x.c}26;color:${x.c}">${x.l}</span>`};
@@ -490,7 +496,7 @@ function pgIzvestaji(){
   <div class="row wrap noprint"><button class="btn-p grow" data-act="repprint">🖨️ Štampaj / PDF izveštaj</button><button class="grow" data-act="csvord">📑 CSV naloga</button></div>`;
 }
 function pgVise(){const b=(t,ic,n,s)=>`<button data-tab="${t}"><span style="font-size:1.6rem">${ic}</span><div><b>${n}</b><div class="small muted">${s}</div></div></button>`;
-  return`<div class="more">${b('delovi','📦','Delovi','Poručivanje, stiglo, lager')}${b('mehanicari','🔧','Mehaničari','Dodela naloga, opterećenje')}${b('izvestaji','📊','Izveštaji','Prihod po periodu i mehaničaru')}${b('podesavanja','⚙️','Podešavanja','Radionica, PDV, backup, ažuriranje')}</div>${supportCard()}`}
+  return`<div class="more">${b('musterije','👥','Mušterije','Imenik, vozila, istorija, za naplatu')}${b('delovi','📦','Delovi','Poručivanje, stiglo, lager')}${b('mehanicari','🔧','Mehaničari','Dodela naloga, opterećenje')}${b('izvestaji','📊','Izveštaji','Prihod po periodu i mehaničaru')}${b('podesavanja','⚙️','Podešavanja','Radionica, PDV, backup, ažuriranje')}</div>${supportCard()}`}
 function pgPodesavanja(){
   const s=S(),sh=s.shop,fi=(l,p,v,t,extra)=>`<div><label class="l">${l}</label><input class="fld" data-cfg="${p}" ${t==='n'?'type="number" inputmode="decimal" step="any" data-n="1"':''} value="${esc(v)}" ${extra||''}></div>`;
   const last=[['Interni',snaps[0]&&snaps[0].t],['Folder',s.lastFolder],['Izvoz',s.lastExport]];
@@ -498,7 +504,8 @@ function pgPodesavanja(){
   <div class="card"><h3>🏢 Podaci radionice <span class="muted small">(na štampanim dokumentima)</span></h3><div class="grid g2">
    <div style="grid-column:1/-1"><label class="l">Naziv</label><input class="fld" data-cfg="shop.name" value="${esc(sh.name)}" placeholder="Auto servis …"></div>
    ${fi('Adresa','shop.addr',sh.addr)}${fi('Mesto','shop.city',sh.city)}${fi('Telefon','shop.phone',sh.phone)}${fi('E-pošta','shop.email',sh.email)}${fi('PIB','shop.pib',sh.pib)}${fi('Matični broj','shop.mb',sh.mb)}
-   ${fi('Tekući račun','shop.acc',sh.acc)}${fi('Banka','shop.bank',sh.bank)}</div></div>
+   ${fi('Tekući račun','shop.acc',sh.acc)}${fi('Banka','shop.bank',sh.bank)}</div>
+   <div class="row sp" style="margin-top:12px;gap:10px;flex-wrap:wrap"><div><b>NBS IPS QR kod</b> <span class="small muted">na predračunu i neplaćenom računu</span><div class="small" style="margin-top:3px">${!sh.acc?'<span class="muted">Upiši tekući račun (npr. 160-1234567-89) da bi se QR prikazao.</span>':ipsAcc(sh.acc)?'<span style="color:var(--ok)">✔ Tekući račun je ispravan</span>':'<span style="color:var(--warn)">⚠ Tekući račun nije ispravan (kontrolni broj) — QR se neće prikazati</span>'}</div></div><select class="fld" style="width:auto" data-cfg="ipsQr" data-b="1"><option value="1" ${s.ipsQr!==false?'selected':''}>Uključen</option><option value="0" ${s.ipsQr===false?'selected':''}>Isključen</option></select></div></div>
   <div class="card"><h3>🖼️ Logo radionice <span class="muted small">(štampa se na nalogu, predračunu i računu)</span></h3>
    ${s.logo?`<div class="logoPrev"><img src="${esc(s.logo)}" alt="Logo"></div>`:'<div class="small muted" style="margin-bottom:10px">Logo nije dodat. Preporuka: PNG sa providnom pozadinom ili JPG.</div>'}
    <div class="row wrap" style="gap:8px"><button class="btn-p grow" data-act="logopick">🖼️ ${s.logo?'Promeni logo':'Dodaj logo'}</button>${s.logo?'<button class="btn-d" data-act="logodel">🗑️ Ukloni</button>':''}</div></div>
@@ -732,7 +739,7 @@ const vehFields=()=>[
   {k:'year',l:'Godina proizvodnje',t:'number',h:1},{k:'fuel',l:'Gorivo',t:'select',h:1,o:()=>[['','—'],...FUELS.map(f=>[f,f])]},
   {k:'ccm',l:'Kubikaža (cm³)',t:'number',h:1},{k:'kw',l:'Snaga (kW)',t:'number',h:1},
   {k:'km',l:'Trenutna kilometraža',t:'number',h:1},{k:'color',l:'Boja',h:1},
-  {k:'owner',l:'Vlasnik / korisnik',h:1},{k:'phone',l:'Telefon',t:'tel',h:1},
+  {k:'owner',l:'Vlasnik / mušterija',h:1,list:'cliList',ph:'Izaberi ili upiši novo ime'},{k:'phone',l:'Telefon',t:'tel',h:1},
   {k:'note',l:'Napomena',t:'textarea'}];
 function openVeh(id,pre,ctx){if(RO){roBlock();return}
   vctx=Object.assign({id:id||''},ctx||{});
@@ -744,8 +751,9 @@ function openVeh(id,pre,ctx){if(RO){roBlock();return}
       o.plate=o.plate.toUpperCase();o.vin=o.vin.toUpperCase().replace(/\s/g,'');
       const dup=db.vehicles.find(x=>x.id!==vctx.id&&x.plate&&x.plate.replace(/[\s-]/g,'')===o.plate.replace(/[\s-]/g,''));
       if(dup&&!confirm('Vozilo sa tablicom '+o.plate+' već postoji. Sačuvati ipak?'))return false;
-      let t;if(vctx.id){t=vehById(vctx.id);Object.assign(t,o)}else{t=Object.assign({id:uid()},o);db.vehicles.push(t)}
-      save();toast('Vozilo sačuvano ✔');
+      let t;if(vctx.id){t=vehById(vctx.id);const oc=t.clientId&&cliById(t.clientId);if(oc&&(nName(oc.name)!==nName(o.owner)||(o.phone&&nPhone(oc.phone)!==nPhone(o.phone))))delete t.clientId;Object.assign(t,o)}else{t=Object.assign({id:uid()},o);db.vehicles.push(t)}
+      if(!t.clientId&&o.owner){const c=findClient(o.owner,o.phone);if(c){t.clientId=c.id;if(!o.phone&&c.phone)t.phone=c.phone}}
+      linkClients();save();toast('Vozilo sačuvano ✔');
       if(vctx.then==='order'){setTimeout(()=>{ed.o.vehicleId=t.id;drawOrder()},0);return false}
     }});
 }
@@ -841,12 +849,121 @@ function docHtml(o,kind){
   if(kind==='racun')foot=`<p style="margin-top:10px">Način plaćanja: ${esc(o.payMethod||'Gotovina')} ${o.paid?'— <b>plaćeno '+fmtDate(o.paidDate)+'</b>':''}</p>${sh.acc?`<p>Tekući račun: ${esc(sh.acc)}${sh.bank?' ('+esc(sh.bank)+')':''}</p>`:''}${S().invNote?`<p>${esc(S().invNote)}</p>`:''}${num(S().warranty)?`<p>Garancija na izvršene radove i ugrađene delove: ${num(S().warranty)} dana od datuma računa.</p>`:''}${sig}`;
   return`<div class="hd"><div class="hl">${S().logo?`<img class="dlogo" src="${esc(S().logo)}" alt="">`:''}<div><h1>${esc(sh.name||'Auto servis')}</h1><div style="font-size:12px;margin-top:4px">${shopLines}</div></div></div>
    <div style="text-align:right"><h1>${K[0]}</h1><div><b>Br. ${esc(K[1]||'')}</b></div><div>Datum: ${fmtDate(K[2])}</div>${kind==='nalog'?`<div style="margin-top:4px"><span class="st">${esc(ST[o.status].l)}</span></div>`:''}${kind!=='nalog'?`<div class="small">Nalog: ${esc(o.no)}</div>`:''}</div></div>
-  <div class="two"><div><h2>Klijent</h2><p><b>${esc(v.owner||'—')}</b></p>${v.phone?`<p>Tel: ${esc(v.phone)}</p>`:''}</div>
+  <div class="two"><div><h2>Klijent</h2><p><b>${esc(v.owner||'—')}</b></p>${(()=>{const c=v.clientId&&cliById(v.clientId);return c?[[c.addr,c.city].filter(Boolean).join(', '),c.pib?'PIB: '+c.pib:'',c.mb?'MB: '+c.mb:''].filter(Boolean).map(x=>`<p>${esc(x)}</p>`).join(''):''})()}${v.phone?`<p>Tel: ${esc(v.phone)}</p>`:''}</div>
    <div><h2>Vozilo</h2><p><b>${esc(v.plate||'')}</b> — ${esc(vehName(v))}${v.year?' ('+esc(v.year)+')':''}</p><p>${[v.vin?'VIN: '+esc(v.vin):'',v.ccm?fmtN(v.ccm)+' cm³':'',v.kw?v.kw+' kW ('+Math.round(num(v.kw)*1.35962)+' KS)':'',v.fuel?esc(v.fuel):''].filter(Boolean).join(' · ')}</p>${o.km?`<p>Kilometraža: ${fmtN(o.km)} km</p>`:''}</div></div>
   ${kind==='nalog'?`<h2>Opis kvara / zahtev klijenta</h2><p style="min-height:34px;white-space:pre-wrap">${esc(o.complaint||'')}</p>${m?`<p>Mehaničar: <b>${esc(m.name)}</b></p>`:''}${(o.intake||o.fuelLvl||o.promised)?`<p>${o.fuelLvl?'Gorivo: <b>'+esc(o.fuelLvl)+'</b>':''}${o.fuelLvl&&o.promised?' · ':''}${o.promised?'Dogovoren rok: <b>'+fmtDate(o.promised)+'</b>':''}</p>${o.intake?'<p>Stanje pri prijemu: '+esc(o.intake)+'</p>':''}`:''}`:''}
   <h2>${kind==='nalog'?'Radovi i delovi':'Stavke'}</h2>
-  <table class="items"><tr><th class="hm" style="width:30px">R.br.</th><th>Opis</th><th class="hm" style="width:40px">Vrsta</th><th style="width:50px" class="r q">Kol.</th><th style="width:90px" class="r">Cena</th><th style="width:100px" class="r">Iznos</th></tr>${rows}</table>${tot}
+  <table class="items"><tr><th class="hm" style="width:30px">R.br.</th><th>Opis</th><th class="hm" style="width:40px">Vrsta</th><th style="width:50px" class="r q">Kol.</th><th style="width:90px" class="r">Cena</th><th style="width:100px" class="r">Iznos</th></tr>${rows}</table><div class="totrow">${ipsBlock(o,kind)}${tot}</div>
   ${kind==='nalog'&&o.note?`<h2>Napomena mehaničara</h2><p style="white-space:pre-wrap">${esc(o.note)}</p>`:''}${foot}`;
+}
+
+
+/* ---------- MUŠTERIJE ----------
+   Mušterija ima više vozila (vozilo.clientId). Ime i telefon se čuvaju i na vozilu (vlasnik), radi štampe i pretrage.
+   ID mušterije nastaje iz imena i telefona, pa dva uređaja koja povežu ista stara vozila naprave istu mušteriju. */
+const cliById=id=>db.clients.find(c=>c.id===id);
+const nName=s=>String(s||'').trim().toLowerCase().replace(/\s+/g,' ');
+const nPhone=s=>{let d=String(s||'').replace(/\D/g,'');if(d.startsWith('00'))d=d.slice(2);if(d.startsWith('381'))d=d.slice(3);return d.replace(/^0+/,'')};
+function cliId(name,phone){const t=nName(name)+'|'+nPhone(phone);let h=2166136261;for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619)}return'c'+(h>>>0).toString(36)+t.length.toString(36)}
+function findClient(name,phone){
+  const p=nPhone(phone),n=nName(name);
+  if(p.length>=6){const c=db.clients.find(c=>nPhone(c.phone)===p);if(c)return c}
+  if(n)return db.clients.find(c=>nName(c.name)===n&&(!p||!nPhone(c.phone)))||null;
+  return null;
+}
+/* poveži vozila sa mušterijama (pravi mušteriju kad ne postoji); vraća broj izmena */
+function linkClients(){
+  let n=0;
+  db.vehicles.forEach(v=>{
+    const c=v.clientId&&cliById(v.clientId);
+    if(c){if(v.owner!==c.name||(c.phone&&v.phone!==c.phone)){v.owner=c.name;if(c.phone)v.phone=c.phone;n++}return}
+    if(!nName(v.owner)){if(v.clientId){delete v.clientId;n++}return}
+    let f=findClient(v.owner,v.phone);
+    if(!f){f={id:cliId(v.owner,v.phone),name:String(v.owner).trim(),phone:String(v.phone||'').trim(),email:'',addr:'',city:'',pib:'',note:''};
+      if(!cliById(f.id))db.clients.push(f);else f=cliById(f.id)}
+    else if(!f.phone&&v.phone){f.phone=String(v.phone).trim()}
+    v.clientId=f.id;n++;
+  });
+  return n;
+}
+const cliVehs=id=>db.vehicles.filter(v=>v.clientId===id);
+function cliStats(id){
+  const vs=new Set(cliVehs(id).map(v=>v.id)),os=db.orders.filter(o=>vs.has(o.vehicleId)).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  let paid=0,due=0;const dueL=[];
+  os.forEach(o=>{if(o.status!=='zavrsen')return;const t=calc(o).total;if(o.paid)paid+=t;else{due+=t;dueL.push(o)}});
+  return{os,paid,due,dueL,last:os[0]&&os[0].date};
+}
+const cliFields=()=>[
+  {k:'name',l:'Ime i prezime / naziv firme',req:1},{k:'phone',l:'Telefon',t:'tel',h:1},{k:'email',l:'E-pošta',t:'email',h:1},
+  {k:'addr',l:'Adresa',h:1},{k:'city',l:'Mesto',h:1},{k:'pib',l:'PIB (za firme)',h:1},{k:'mb',l:'Matični broj',h:1},{k:'note',l:'Napomena',t:'textarea'}];
+function openClient(id){if(RO){roBlock();return}
+  const c=id?cliById(id):null;
+  openForm({title:c?'Izmena mušterije':'Nova mušterija',fields:cliFields(),values:c||{},
+    onSave:o=>{
+      const dup=findClient(o.name,o.phone);
+      if(dup&&dup.id!==(c&&c.id)&&!confirm('Mušterija „'+dup.name+'“'+(dup.phone?' ('+dup.phone+')':'')+' već postoji. Sačuvati ipak novu?'))return false;
+      if(c){Object.assign(c,o);cliVehs(c.id).forEach(v=>{v.owner=c.name;v.phone=c.phone})}
+      else db.clients.push(Object.assign({id:uid()},o));
+      save();toast('Mušterija sačuvana ✔');
+    }});
+}
+function delClient(id){if(RO){roBlock();return}const c=cliById(id);if(!c)return;
+  const n=cliVehs(id).length;
+  if(n){alert(c.name+' ima '+n+' vozila. Prvo ta vozila prebaci na drugu mušteriju ili im obriši vlasnika.');return}
+  if(confirm('Obrisati mušteriju '+c.name+'?')){db.clients=db.clients.filter(x=>x.id!==id);save();render()}}
+function pgMusterije(){
+  const q=nName(ui.q).replace(/[\s-]/g,'');
+  let l=db.clients.slice();
+  if(q)l=l.filter(c=>[c.name,c.phone,c.email,c.city,c.pib,...cliVehs(c.id).map(v=>v.plate+' '+vehName(v))].join(' ').toLowerCase().replace(/[\s-]/g,'').includes(q));
+  l.sort((a,b)=>String(a.name).localeCompare(String(b.name),'sr'));
+  const allDue=db.clients.reduce((a,c)=>a+cliStats(c.id).due,0);
+  return`<div class="grid g2" style="margin-bottom:12px"><div class="stat"><small>Mušterija</small><b>${db.clients.length}</b></div><div class="stat" style="border-left-color:var(--warn)"><small>Ukupno za naplatu</small><b>${money(allDue)}</b></div></div>
+  <div class="row wrap" style="margin-bottom:12px;gap:8px"><input class="fld grow" id="q" placeholder="🔍 Ime, telefon, tablica, firma…" value="${esc(ui.q)}"><button class="btn-p" data-act="newcli">👤 Nova mušterija</button></div>
+  ${l.length?l.map(c=>{const st=cliStats(c.id),vs=cliVehs(c.id);return`<div class="item"><div class="grow"><div class="row sp"><b>👤 ${esc(c.name)}</b>${st.due?`<span class="badge b-warn">Za naplatu ${money(st.due)}</span>`:''}</div>
+   <div class="small muted">${[c.phone,c.city,c.pib?'PIB '+c.pib:''].filter(Boolean).map(esc).join(' · ')}</div>
+   <div class="small">${vs.length?vs.map(v=>`<span class="plate" style="margin:3px 4px 0 0;display:inline-block">${esc(v.plate||'—')}</span>`).join(''):'<span class="muted">nema vozila</span>'} <span class="muted">· ${st.os.length} naloga${st.last?' · poslednji '+fmtDate(st.last):''}</span></div>
+   <div class="acts"><button class="btn-s btn-p" data-act="cliinfo" data-id="${c.id}">📇 Karton</button>${c.phone?`<a class="btn-s" style="text-decoration:none" href="tel:${esc(String(c.phone).replace(/[^\d+]/g,''))}">📞</a>`:''}<button class="btn-s" data-act="editcli" data-id="${c.id}">✏️</button><button class="btn-s btn-d" data-act="delcli" data-id="${c.id}">🗑️</button></div></div></div>`}).join('')
+   :`<div class="empty">${q?'Nema rezultata.':'Nema mušterija. Dodaju se same kad upišeš vlasnika na vozilu, ili ručno dugmetom „Nova mušterija“.'}</div>`}`;
+}
+function showClient(id){
+  const c=cliById(id);if(!c)return;const st=cliStats(id),vs=cliVehs(id),ph=phoneIntl(c.phone);
+  $('dlgBody').innerHTML=`<h3>👤 ${esc(c.name)}</h3>
+   <div class="small muted" style="margin-bottom:8px">${[c.phone?'📞 '+c.phone:'',c.email?'✉️ '+c.email:'',[c.addr,c.city].filter(Boolean).join(', '),c.pib?'PIB '+c.pib:'',c.mb?'MB '+c.mb:''].filter(Boolean).map(esc).join('<br>')}${c.note?`<br><i>${esc(c.note)}</i>`:''}</div>
+   ${c.phone?`<div class="row wrap" style="gap:6px;margin-bottom:10px"><a class="btn-s" style="text-decoration:none" href="tel:${esc(String(c.phone).replace(/[^\d+]/g,''))}">📞 Pozovi</a>${ph?`<a class="btn-s" style="text-decoration:none" href="viber://chat?number=%2B${ph}">💜 Viber</a><a class="btn-s" style="text-decoration:none" href="https://wa.me/${ph}" target="_blank" rel="noopener">🟢 WhatsApp</a>`:''}<a class="btn-s" style="text-decoration:none" href="sms:${esc(String(c.phone).replace(/[^\d+]/g,''))}">✉️ SMS</a></div>`:''}
+   <div class="grid g3" style="margin-bottom:10px"><div class="stat"><small>Naloga</small><b>${st.os.length}</b></div><div class="stat" style="border-left-color:var(--ok)"><small>Plaćeno</small><b style="font-size:1rem">${money(st.paid)}</b></div><div class="stat" style="border-left-color:var(--warn)"><small>Za naplatu</small><b style="font-size:1rem">${money(st.due)}</b></div></div>
+   ${st.dueL.length?`<h4>💳 Za naplatu</h4>${st.dueL.map(o=>{const v=vehById(o.vehicleId)||{};return`<div class="row sp small" style="padding:5px 0;border-bottom:1px solid var(--line)"><span>${fmtDate(o.doneDate||o.date)} · ${esc(o.no)} · ${esc(v.plate||'')}</span><span class="row" style="gap:6px"><b>${money(calc(o).total)}</b><button class="btn-s btn-p" data-act="paid" data-id="${o.id}">Naplaćeno</button></span></div>`}).join('')}`:''}
+   <h4>🚗 Vozila (${vs.length})</h4>
+   ${vs.map(v=>`<div class="row sp small" style="padding:5px 0;border-bottom:1px solid var(--line)"><span><span class="plate">${esc(v.plate||'—')}</span> ${esc(vehName(v))}${v.year?' ('+esc(v.year)+')':''}</span><span class="row" style="gap:6px"><button class="btn-s" data-act="vehinfo" data-id="${v.id}">📖</button><button class="btn-s btn-p" data-act="neword" data-veh="${v.id}">📋 Nalog</button></span></div>`).join('')||'<div class="small muted">Nema vozila.</div>'}
+   <h4>📖 Istorija naloga</h4>
+   ${st.os.length?`<table class="tb"><tr><th>Datum</th><th>Nalog</th><th>Vozilo</th><th>Iznos</th></tr>${st.os.slice(0,50).map(o=>{const v=vehById(o.vehicleId)||{};return`<tr><td>${fmtDate(o.date)}</td><td>${esc(o.no)}<div class="small muted" style="text-align:left">${esc(ST[o.status].l)}${o.status==='zavrsen'?(o.paid?' · plaćeno':' · za naplatu'):''}</div></td><td>${esc(v.plate||'')}</td><td>${money(calc(o).total)}</td></tr>`}).join('')}</table>`:'<div class="small muted">Nema naloga.</div>'}
+   <div class="row wrap" style="margin-top:14px;gap:8px"><button class="grow" data-act="dlgclose">Zatvori</button><button class="grow" data-act="editcli" data-id="${c.id}">✏️ Izmeni</button><button class="btn-p grow" data-act="clinewveh" data-id="${c.id}">🚗 Dodaj vozilo</button></div>`;
+  if(!$('dlg').open)$('dlg').showModal();
+}
+
+/* ---------- NBS IPS QR (predračun i račun) ---------- */
+/* tekući račun u 18 cifara (banka 3 + broj 13 + kontrolni 2), sa proverom kontrolnog broja (mod 97) */
+function ipsAcc(a){
+  const t=String(a||'').replace(/[^\d-]/g,'');if(!t)return'';
+  let r;if(t.includes('-')){const p=t.split('-').filter(Boolean);if(p.length!==3||p[0].length>3||p[1].length>13||p[2].length>2)return'';r=p[0].padStart(3,'0')+p[1].padStart(13,'0')+p[2].padStart(2,'0')}else r=t;
+  if(!/^\d{18}$/.test(r))return'';
+  try{return BigInt(r)%97n===1n?r:''}catch{return r}
+}
+const ipsClean=(s,n)=>String(s||'').replace(/[|\r\n]+/g,' ').replace(/\s+/g,' ').trim().slice(0,n);
+function ipsText(o,kind){
+  const sh=S().shop,acc=ipsAcc(sh.acc),t=calc(o).total;
+  if(!acc||!(t>0)||!ipsClean(sh.name,70))return'';
+  const no=kind==='racun'?o.invNo:o.proNo;
+  const nm=ipsClean(sh.name,40),place=ipsClean([sh.addr,sh.city].filter(Boolean).join(', '),66-nm.length);
+  const ro=String(no||'').replace(/[^\d-]/g,'').replace(/^-+|-+$/g,'').replace(/-{2,}/g,'-');
+  const f=['K:PR','V:01','C:1','R:'+acc,'N:'+nm+(place?'\r\n'+place:''),'I:RSD'+(Math.round(t*100)/100).toFixed(2).replace('.',','),'SF:221',
+    'S:'+ipsClean((kind==='racun'?'Račun ':'Predračun ')+(no||''),35)];
+  if(ro)f.push('RO:00'+ro.slice(0,23));
+  return f.join('|');
+}
+function ipsBlock(o,kind){
+  if(S().ipsQr===false||!window.AtmosQR||kind==='nalog'||(kind==='racun'&&o.paid))return'';
+  const txt=ipsText(o,kind);if(!txt)return'';
+  try{return`<div class="ipsqr">${AtmosQR.svg(txt,118)}<div><b>NBS IPS QR</b><br>Plati skeniranjem u aplikaciji m-banking (opcija „IPS skeniraj“). Iznos i podaci se popunjavaju sami.</div></div>`}catch{return''}
 }
 
 /* ---------- PODSETNICI / MEHANIČARI forme ---------- */
@@ -932,6 +1049,11 @@ document.addEventListener('click',async e=>{
     case'editveh':openVeh(id);break;
     case'delveh':delVeh(id);break;
     case'vehinfo':showVeh(id);break;
+    case'newcli':openClient();break;
+    case'editcli':openClient(id);break;
+    case'delcli':delClient(id);break;
+    case'cliinfo':showClient(id);break;
+    case'clinewveh':{const c=cliById(id);if(c)openVeh(null,{owner:c.name,phone:c.phone});break}
     case'scancam':$('scanCam').click();break;
     case'scanpick':$('scanFile').click();break;
     case'newrem':openRem(null,d.veh?{vehicleId:d.veh}:null);break;
@@ -983,7 +1105,7 @@ document.addEventListener('click',async e=>{
     case'reset':if(confirm('Obrisati SVE podatke?'+(syOn()?' Brisanje važi i za sve ostale uređaje ovog naloga.':''))&&confirm('Sigurno? Preporuka: prvo napravi izvoz.')){await takeSnap('pre-brisanja',true);db=fresh();persist();go('pregled')}break;
   }
 });
-$('fab').onclick=()=>{const t=ui.tab;if(t==='vozila')openVeh();else if(t==='podsetnici')openRem();else if(t==='mehanicari')openMech();else if(t==='delovi')openPart();else openOrder()};
+$('fab').onclick=()=>{const t=ui.tab;if(t==='vozila')openVeh();else if(t==='musterije')openClient();else if(t==='podsetnici')openRem();else if(t==='mehanicari')openMech();else if(t==='delovi')openPart();else openOrder()};
 document.addEventListener('input',e=>{
   const t=e.target,d=t.dataset;
   if(t.id==='q'){ui.q=t.value;const p=t.selectionStart;render();const q=$('q');q.focus();q.setSelectionRange(p,p);return}
@@ -996,7 +1118,7 @@ document.addEventListener('change',e=>{
   const t=e.target,d=t.dataset;
   if(t.id==='mechF'){ui.mech=t.value;render();return}
   if(d.i!==undefined&&d.k==='name'){const it=ed.o.items[+d.i];if(!num(it.price)&&it.name){let last=null;db.orders.forEach(o=>(o.items||[]).forEach(x=>{if(x.name===it.name&&num(x.price))last=x}));if(last){it.price=last.price;it.type=last.type;drawOrder()}}return}
-  if(d.cfg!==undefined){if(RO){roBlock();render();return}let v=t.value;if(d.b)v=v==='1';else if(d.n||t.type==='number')v=num(v);setPath(S(),d.cfg,v);persist();if(['pdvRate','pdvIncl','snapKeep','backupDays'].includes(d.cfg)||d.cfg.startsWith('shop.'))render()}
+  if(d.cfg!==undefined){if(RO){roBlock();render();return}let v=t.value;if(d.b)v=v==='1';else if(d.n||t.type==='number')v=num(v);setPath(S(),d.cfg,v);persist();if(['pdvRate','pdvIncl','snapKeep','backupDays','ipsQr'].includes(d.cfg)||d.cfg.startsWith('shop.'))render()}
 });
 
 /* ---------- OBAVEŠTENJA ---------- */
@@ -1271,7 +1393,7 @@ async function authRecheck(){
    Svi uređaji istog naloga dele podatke preko Google Apps Script-a (Code.gs sync-1).
    Šalju se samo izmenjeni zapisi: posle čuvanja (za ~5 s), na svakih 5 min i pri pokretanju.
    Bez interneta sve radi lokalno, izmene odlaze kad se veza vrati. Ako isti zapis menjaju dva uređaja, važi kasnija izmena. */
-const SYNC_KEY='atmosSync1',SYNC_COLLS=['mechs','vehicles','orders','reminders','parts'],SYNC_MIN=5;
+const SYNC_KEY='atmosSync1',SYNC_COLLS=['mechs','vehicles','orders','reminders','parts','clients'],SYNC_MIN=5;
 /* podešavanja koja važe samo za ovaj uređaj (ne šalju se drugima) */
 const LOCAL_SET=['theme','accent','fs','backupDays','snapKeep','lastExport','lastFolder','fbName','notif','lastNotif','syncOff'];
 let sy=(()=>{try{const x=JSON.parse(localStorage.getItem(SYNC_KEY));if(x&&typeof x==='object'&&x.h)return x}catch{}return{rev:0,h:{},last:0,err:''}})();
@@ -1307,6 +1429,7 @@ async function syncNow(manual){
     if(j.status==='invalid'){clearAuth();lock('PIN više nije važeći. Prijavi se ponovo.');return}
     if(j.status!=='ok'&&j.status!=='expired'||j.rev==null){syMsg=j.v&&j.v!=='sync-1'?'Server još nema sinhronizaciju (Code.gs)':'Greška servera';sy.err=syMsg;syStore();return}
     if(j.maxDevices!=null)authDev={n:Number(j.devices)||0,max:Number(j.maxDevices)};
+    if(j.v==='sync-1')Object.keys(sent).forEach(k=>{if(k.startsWith('clients/'))delete sent[k]});
     /* poslato je sada na serveru */
     Object.keys(sent).forEach(k=>{if(sent[k]===null)delete sy.h[k];else sy.h[k]=sent[k]});
     /* primeni tuđe izmene; preskoči zapise koje je korisnik menjao dok je zahtev trajao */
@@ -1322,6 +1445,7 @@ async function syncNow(manual){
       else{if(i>=0)db[c].splice(i,1);delete sy.h[k]}
       got++;
     });
+    if(got&&linkClients()&&authState==='ok')syncSoon(3000);
     Object.keys(j.counters||{}).forEach(k=>{const n=Number(j.counters[k])||0;if(n>(db.counters[k]||0)){db.counters[k]=n;got++}});
     sy.rev=j.rev;sy.last=Date.now();sy.err='';sy.user=s.u.toLowerCase();syStore();
     if(got){try{localStorage.setItem(KEY,JSON.stringify(db))}catch{}updateBadge();if(!document.querySelector('dialog[open]')&&$('docView').hidden)render()}
@@ -1360,7 +1484,8 @@ matchMedia('(prefers-color-scheme: light)').addEventListener?.('change',()=>S().
 addEventListener('resize',()=>{clearTimeout(addEventListener.t);addEventListener.t=setTimeout(()=>{if(!$('dlg').open)render()},200)});
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch{}
 loadSnaps().then(()=>takeSnap('automatski')).then(()=>{if(ui.tab==='podesavanja')render()});
-(function(){const q=new URLSearchParams(location.search);const t=q.get('tab');if(['nalozi','vozila','podsetnici','delovi','mehanicari','izvestaji','podesavanja'].includes(t))ui.tab=t;
+(function(){if(linkClients()){try{localStorage.setItem(KEY,JSON.stringify(db))}catch{}}
+  const q=new URLSearchParams(location.search);const t=q.get('tab');if(['nalozi','vozila','musterije','podsetnici','delovi','mehanicari','izvestaji','podesavanja'].includes(t))ui.tab=t;
   render();if(q.get('new')==='order')setTimeout(()=>openOrder(),50);
   setTimeout(checkNotif,1200);if(!fbDoneToday())fbWrite().catch(()=>{})})();
 authStart();
