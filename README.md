@@ -2,7 +2,7 @@
 
 **Atmos Radionica** je aplikacija za auto servis: radni nalozi sa statusima, baza vozila, mehaničari, delovi, podsetnici na redovne servise, predračun i račun za štampu. Radi na **Android** telefonima i tabletima i na **Windows** računarima, i bez interneta. Sama se ažurira.
 
-Svi podaci se čuvaju lokalno na uređaju.
+Podaci se čuvaju na uređaju, a svi uređaji istog naloga se međusobno sinhronizuju.
 
 ## Mogućnosti
 
@@ -17,6 +17,7 @@ Svi podaci se čuvaju lokalno na uređaju.
 - **Izveštaji** — prihod po mesecu, godini, 3 i 6 meseci, po mehaničarima; grafikon; štampa / PDF; CSV izvoz
 - **PDV** — opciono (20% / 10%), cene sa ili bez PDV-a
 - **Garancija** — broj dana se štampa na računu
+- **Sinhronizacija** — isti podaci na svim uređajima naloga (telefon, tablet, računar)
 - **Backup** — dnevne interne kopije, automatski upis u folder (Windows), izvoz / uvoz baze (JSON), CSV naloga i vozila
 - **Automatsko ažuriranje** — nova verzija stiže sama, bez ponovne instalacije
 
@@ -45,6 +46,9 @@ Potreban je Google Chrome (na većini telefona je već instaliran).
 - Ako prelaziš sa ranije verzije u pregledaču: tamo klikni **Izvezi podatke (JSON)**, pa u aplikaciji **Podešavanja → ⬆ Uvezi bazu**.
 
 ## Verzije
+
+### 1.7.0
+- **Sinhronizacija između uređaja** — svi uređaji istog naloga dele naloge, vozila, podsetnike, delove, mehaničare i podatke radionice. Izmene se šalju par sekundi posle čuvanja i na svakih 5 minuta; bez interneta sve radi, a izmene odlaze kad se veza vrati. Stanje i dugme **Sinhronizuj sada** su u Podešavanjima.
 
 ### 1.6.5
 - Dugme Aktivacija menja boju: tamno dok je licenca aktivna, zeleno kad ističe, crveno kad je istekla
