@@ -251,7 +251,7 @@ body{max-width:100vw;overflow-x:clip;touch-action:pan-y pinch-zoom}
 <script>
 'use strict';
 if(window.ATMOS_BLOCKED)throw new Error('Atmos Radionica: otvori Android ili Windows aplikaciju');
-const VER='1.9.0';
+const VER='1.9.1';
 let authState='locked'; /* locked = mora prijava; ok = licenca važi; expired = licenca istekla (samo pregled) */
 let RO=true; /* režim samo za pregled dok se ne potvrdi prijava */
 const $=id=>document.getElementById(id);
@@ -416,7 +416,7 @@ function orderCard(o){
   <div class="row wrap" style="gap:8px;margin-top:4px">${stBadge(o.status)}${o.paid?'<span class="badge b-ok">Plaćeno</span>':(o.status==='zavrsen'?'<span class="badge b-warn">Za naplatu</span>':'')}${o.invNo?`<span class="badge b-n">${esc(o.invNo)}</span>`:o.proNo?`<span class="badge b-n">${esc(o.proNo)}</span>`:''}${o.notified?`<span class="badge b-ok">💬 Obavešten</span>`:''}${o.status!=='zavrsen'?(()=>{let h='';if(o.promised){const d=dayDiff(o.promised);h+=`<span class="badge ${d<0?'b-bad':d<=1?'b-warn':'b-n'}">⏱ Rok ${fmtDate(o.promised)}${d<0?' · kasni':d===0?' · danas':''}</span>`}const dd=-dayDiff(o.date);if(dd>0)h+=`<span class="badge b-n">${dd} d u radionici</span>`;return h})():''}</div>
   ${o.complaint?`<div class="small" style="margin-top:4px">${esc(o.complaint)}</div>`:''}
   <div class="acts">${next?`<button class="btn-s btn-p" data-act="stnext" data-id="${o.id}" data-st="${next[0]}">${next[1]}</button>`:(!o.paid?`<button class="btn-s btn-p" data-act="paid" data-id="${o.id}">💳 Naplaćeno</button>`:'')}${o.status==='zavrsen'?`<button class="btn-s btn-v" data-act="notify" data-id="${o.id}">💬 Obavesti</button>`:''}<button class="btn-s" data-act="editord" data-id="${o.id}">✏️ Izmeni</button><button class="btn-s" data-act="pickdoc" data-id="${o.id}">🖨️ Štampa</button>${v.phone?`<a class="supLink" style="padding:6px 10px;font-size:.8rem;border-radius:10px" href="tel:${esc(v.phone.replace(/[^\d+]/g,''))}">📞 Pozovi</a>`:''}<button class="btn-s btn-d" data-act="delord" data-id="${o.id}">🗑️</button></div></div></div>`}
-function backupBanner(){return backupDue()?`<div class="card" style="border-color:var(--warn)"><h3>💾 Vreme je za rezervnu kopiju</h3><div class="small muted" style="margin:-4px 0 8px">Podaci nisu sačuvani na serveru više od 7 dana. Napravi rezervnu kopiju i sačuvaj je van uređaja.</div><div class="row wrap"><button class="btn-p grow" data-act="export">⬇ Izvezi bazu (JSON)</button></div></div>`:''}
+function backupBanner(){return backupDue()?`<div class="card" style="border-color:var(--warn)"><h3>💾 Vreme je za rezervnu kopiju</h3><div class="small muted" style="margin:-4px 0 8px">Podaci nisu sačuvani na serveru više od 7 dana. Napravi rezervnu kopiju i sačuvaj je van uređaja.</div><div class="row wrap"><button class="btn-p grow" data-act="export">💾 Napravi rezervnu kopiju</button></div></div>`:''}
 function fbBanner(){return fbNeedPerm?`<div class="card" style="border-color:var(--warn)"><h3>📁 Backup u folder čeka dozvolu</h3><button class="btn-p" data-act="fballow" style="width:100%">Dozvoli upis backup-a</button></div>`:''}
 function pgPregled(){
   const act=db.orders.filter(o=>o.status!=='zavrsen'),n=s=>db.orders.filter(o=>o.status===s).length;
@@ -426,6 +426,7 @@ function pgPregled(){
   const al=alerts().slice(0,5);
   return`${fbBanner()}${backupBanner()}
   <div class="row wrap noprint" style="margin-bottom:12px"><button class="btn-p grow" data-act="neword">📋 Novi radni nalog</button><button class="grow" data-act="newveh">🚗 Novo vozilo</button></div>
+  ${todayCard(act)}
   <div class="grid g4" style="margin-bottom:12px">
    <div class="stat" data-act="gonalozi" data-st="uzet" style="border-left-color:${ST.uzet.c}"><small>Uzeto u rad</small><b>${n('uzet')}</b></div>
    <div class="stat" data-act="gonalozi" data-st="obrada" style="border-left-color:${ST.obrada.c}"><small>U obradi</small><b>${n('obrada')}</b></div>
@@ -434,6 +435,27 @@ function pgPregled(){
   ${al.length?`<div class="card"><h3>⏰ Podsetnici na servis <button class="btn-s" data-tab="podsetnici">Svi</button></h3>${al.map(x=>`<div class="alert ${x.s.lvl}" data-tab="podsetnici"><span class="plate">${esc((vehById(x.r.vehicleId)||{}).plate||'—')}</span><span class="grow">${esc(x.r.title)} — ${esc(x.s.badge)}</span></div>`).join('')}</div>`:''}
   ${(()=>{const pt=db.parts.filter(p=>p.status==='treba').length,pp=db.parts.filter(p=>p.status==='poruceno').length;return pt||pp?`<div class="card"><h3>📦 Delovi <button class="btn-s" data-tab="delovi">Otvori</button></h3><div class="row wrap" style="gap:8px">${pt?`<span class="badge b-bad">Poručiti: ${pt}</span>`:''}${pp?`<span class="badge b-warn">Poručeno, čeka: ${pp}</span>`:''}</div></div>`:''})()}
   <div class="card"><h3>🛠️ Vozila u radionici <span class="muted small">${act.length}</span></h3>${act.length?act.sort((a,b)=>String(a.date).localeCompare(String(b.date))).map(orderCard).join(''):'<div class="empty">Nema aktivnih naloga.</div>'}</div>`;
+}
+
+/* ---------- PREGLED: DANAS ----------
+   Šta danas treba uraditi: kasni rok, rok danas, završeno a nenaplaćeno; i kratak učinak dana. */
+function todayCard(act){
+  const t=todayStr(),vl=o=>{const v=vehById(o.vehicleId)||{};return`<span class="plate">${esc(v.plate||'—')}</span>`},who=o=>{const v=vehById(o.vehicleId)||{};return esc([vehName(v),v.owner].filter(Boolean).join(' · '))};
+  const late=act.filter(o=>o.promised&&o.promised<t).sort((a,b)=>a.promised.localeCompare(b.promised));
+  const due=act.filter(o=>o.promised===t);
+  const unpaid=db.orders.filter(o=>o.status==='zavrsen'&&!o.paid).sort((a,b)=>String(a.doneDate||a.date).localeCompare(String(b.doneDate||b.date)));
+  const inT=db.orders.filter(o=>o.date===t).length,doneT=db.orders.filter(o=>o.status==='zavrsen'&&o.doneDate===t);
+  const paidT=db.orders.filter(o=>o.paid&&o.paidDate===t).reduce((a,o)=>a+calc(o).total,0);
+  const line=(o,cls,txt,btn)=>`<div class="alert ${cls}" style="cursor:default;flex-wrap:wrap;row-gap:6px"><div class="grow" data-act="editord" data-id="${o.id}" style="cursor:pointer;min-width:150px">${vl(o)} <b>${txt}</b><div class="small muted" style="margin-top:2px">${who(o)}</div></div><div class="row" style="gap:4px;margin-left:auto">${btn||''}</div></div>`;
+  const todo=[
+    ...late.map(o=>line(o,'bad','Kasni '+(-dayDiff(o.promised))+' d',`<button class="btn-s" data-act="editord" data-id="${o.id}">Otvori</button>`)),
+    ...due.map(o=>line(o,'warn','Rok danas',`<button class="btn-s" data-act="editord" data-id="${o.id}">Otvori</button>`)),
+    ...unpaid.slice(0,5).map(o=>line(o,'warn','Za naplatu '+money(calc(o).total),`${o.notified?'':`<button class="btn-s" data-act="notify" data-id="${o.id}" title="Mušterija nije obaveštena">💬 Obavesti</button>`}<button class="btn-s btn-p" data-act="paid" data-id="${o.id}">💳 Naplaćeno</button>`))];
+  const more=unpaid.length>5?`<div class="small muted" style="margin-top:6px" data-act="gonalozi" data-st="unpaid">… i još ${unpaid.length-5} za naplatu →</div>`:'';
+  const mini=(l,v,c)=>`<div style="flex:1;min-width:70px"><div class="small muted">${l}</div><b style="${c?'color:var(--'+c+')':''}">${v}</b></div>`;
+  return`<div class="card"><h3>📅 Danas <span class="muted small">${fmtDate(t)}</span></h3>
+   <div class="row wrap" style="gap:10px;margin-bottom:${todo.length?10:0}px">${mini('Primljeno',inT)}${mini('Završeno',doneT.length)}${mini('Naplaćeno',money(paidT),paidT?'ok':'')}${mini('Rok danas',due.length+(late.length?' · kasni '+late.length:''),late.length?'bad':due.length?'warn':'')}</div>
+   ${todo.length?todo.join('')+more:'<div class="small muted">✔ Ništa ne kasni i sve završeno je naplaćeno.</div>'}</div>`;
 }
 function pgNalozi(){
   let l=db.orders.slice();

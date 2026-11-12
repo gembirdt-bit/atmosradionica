@@ -49,6 +49,9 @@ Potreban je Google Chrome (na većini telefona je već instaliran).
 
 ## Verzije
 
+### 1.9.1
+- Pregled: kartica **Danas** — primljeno, završeno i naplaćeno danas, nalozi kojima ističe ili je istekao dogovoreni rok, i završeni nalozi za naplatu sa dugmićima Obavesti i Naplaćeno
+
 ### 1.9.0
 - Zaštita prijave: posle 5 pogrešnih PIN-ova nalog se zaključava na 15 minuta
 
