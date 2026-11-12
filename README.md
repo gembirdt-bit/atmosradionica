@@ -49,6 +49,9 @@ Potreban je Google Chrome (na većini telefona je već instaliran).
 
 ## Verzije
 
+### 1.9.2
+- Promena korisničkog imena: kad se uređaj prijavi pod novim imenom, aplikacija nudi da prenese podatke na novi nalog ili da preuzme samo podatke novog naloga
+
 ### 1.9.1
 - Pregled: kartica **Danas** — primljeno, završeno i naplaćeno danas, nalozi kojima ističe ili je istekao dogovoreni rok, i završeni nalozi za naplatu sa dugmićima Obavesti i Naplaćeno
 

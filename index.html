@@ -251,7 +251,7 @@ body{max-width:100vw;overflow-x:clip;touch-action:pan-y pinch-zoom}
 <script>
 'use strict';
 if(window.ATMOS_BLOCKED)throw new Error('Atmos Radionica: otvori Android ili Windows aplikaciju');
-const VER='1.9.1';
+const VER='1.9.2';
 let authState='locked'; /* locked = mora prijava; ok = licenca važi; expired = licenca istekla (samo pregled) */
 let RO=true; /* režim samo za pregled dok se ne potvrdi prijava */
 const $=id=>document.getElementById(id);
@@ -1137,6 +1137,8 @@ document.addEventListener('click',async e=>{
     case'fbclear':fbClear();break;
     case'upcheck':checkUpdate(true);break;
     case'syncnow':syncNow(true);break;
+    case'syadopt':if(confirm('Preneti sve podatke sa ovog uređaja na nalog '+authUser+'?')){sy={rev:0,h:{},last:0,err:'',user:authUser.toLowerCase()};syStore();syMsg='';render();syncNow(true)}break;
+    case'syfresh':if(confirm('Ukloniti podatke naloga '+sy.user+' sa ovog uređaja i preuzeti podatke naloga '+authUser+'? Pre toga se pravi automatska kopija.')){await takeSnap('pre-promene-naloga',true);const keep={};LOCAL_SET.forEach(x=>{if(x in S())keep[x]=S()[x]});db=fresh();Object.assign(db.settings,keep);try{localStorage.setItem(KEY,JSON.stringify(db))}catch{}sy={rev:0,h:{},last:0,err:'',user:authUser.toLowerCase()};syStore();syMsg='';render();syncNow(true)}break;
     case'admkey':case'admreload':case'admnew':case'admgen':case'admadd':case'admext':case'admextn':case'admextd':case'admextu':case'admedit':case'admsave':case'admdev':case'admdevx':case'admsend':case'admsharev':case'admsharew':case'admsharec':case'admshare':case'admdel':admAct(d.act,d);break;
     case'synctoggle':S().syncOff=!S().syncOff;try{localStorage.setItem(KEY,JSON.stringify(db))}catch{}if(!S().syncOff)syncSoon(500);render();break;
     case'updnow':applyUpdate();break;
@@ -1558,7 +1560,7 @@ async function syncNow(manual){
   if(syBusy||authState==='locked'||(!syOn()&&!manual))return;
   const s=loadAuth();if(!s)return;
   /* podaci na uređaju pripadaju drugom nalogu → ne mešaj ih */
-  if(sy.user&&sy.user!==s.u.toLowerCase()){syMsg='Podaci na ovom uređaju su sa naloga „'+sy.user+'“ — sinhronizacija je pauzirana. Javi se podršci.';return}
+  if(sy.user&&sy.user!==s.u.toLowerCase()){syMsg='';if(manual)toast('Prvo izaberi šta da se radi sa podacima ovog uređaja');if(ui.tab==='podesavanja')bgRender();return}
   if(!navigator.onLine){syMsg='Nema interneta — izmene čekaju';if(manual)toast(syMsg);return}
   /* dok je otvoren prozor za izmenu, sačekaj da se zatvori */
   if(document.querySelector('dialog[open]')){syncSoon(20000);return}
@@ -1613,9 +1615,16 @@ function syncCard(){
   const t=sy.last?new Date(sy.last).toLocaleString('sr-RS',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'nikad';
   const st=!syOn()?'Isključena na ovom uređaju':syBusy?'Sinhronizacija…':syMsg||sy.err||'✔ Radi';
   const bad=syOn()&&(syMsg||sy.err)&&!syBusy;
+  const other=sy.user&&authUser&&sy.user!==authUser.toLowerCase();
+  if(other)return`<div class="card" style="border-color:var(--warn)"><h3>🔄 Sinhronizacija je pauzirana</h3>
+   <div class="small" style="margin-bottom:10px">Podaci na ovom uređaju su do sada sinhronizovani sa nalogom <b>${esc(sy.user)}</b>, a sada si prijavljen kao <b>${esc(authUser)}</b>. Izaberi šta je tačno:</div>
+   <button class="btn-p" data-act="syadopt" style="width:100%;margin-bottom:6px">✔ To je isti nalog (promenjeno ime) — prenesi podatke na ${esc(authUser)}</button>
+   <div class="small muted" style="margin:0 2px 12px">Svi podaci sa ovog uređaja se šalju na nalog ${esc(authUser)} i spajaju sa onim što tamo već postoji.</div>
+   <button data-act="syfresh" style="width:100%;margin-bottom:6px">⬇ Drugi nalog — preuzmi samo podatke naloga ${esc(authUser)}</button>
+   <div class="small muted" style="margin:0 2px">Podaci naloga ${esc(sy.user)} sa ovog uređaja se prvo čuvaju u automatskoj kopiji, pa se uklanjaju sa uređaja.</div></div>`;
   return`<div class="card"><h3>🔄 Sinhronizacija između uređaja</h3>
    <div class="small muted" style="margin-bottom:8px">Svi uređaji prijavljeni na nalog <b>${esc(authUser)}</b> dele iste naloge, vozila, podsetnike, delove, mehaničare i podatke radionice. Izmene se šalju par sekundi posle čuvanja i na svakih ${SYNC_MIN} minuta.</div>
-   <div class="row sp" style="padding:6px 0;border-bottom:1px solid var(--line)"><span class="muted">Stanje</span><b style="${bad?'color:var(--warn)':''}">${esc(st)}</b></div>
+   <div class="row sp" style="padding:6px 0;border-bottom:1px solid var(--line);gap:12px;align-items:flex-start"><span class="muted" style="flex:none">Stanje</span><b style="text-align:right;${bad?'color:var(--warn)':''}">${esc(st)}</b></div>
    <div class="row sp" style="padding:6px 0;border-bottom:1px solid var(--line);margin-bottom:10px"><span class="muted">Poslednja sinhronizacija</span><b>${esc(t)}</b></div>
    <div class="row wrap" style="gap:8px"><button class="btn-p grow" data-act="syncnow" ${syOn()?'':'disabled'}>🔄 Sinhronizuj sada</button><button class="grow" data-act="synctoggle">${syOn()?'⏸ Isključi':'▶ Uključi'}</button></div></div>`;
 }
