@@ -10,6 +10,12 @@ const OFFLINE = path.join(__dirname, 'offline.html');
 
 if (!app.requestSingleInstanceLock()) { app.quit(); }
 
+// Oznaka po kojoj sajt zna da je otvoren iz Windows programa (iz pregledača se traži preuzimanje aplikacije).
+// Postavlja se pre pokretanja, i još jednom na sesiji i prozoru, da važi za sve zahteve.
+const UA_TAG = ' AtmosRadionicaApp/' + app.getVersion();
+app.userAgentFallback = app.userAgentFallback + UA_TAG;
+const withTag = ua => ua.includes('AtmosRadionicaApp') ? ua : ua + UA_TAG;
+
 let win;
 const inScope = u => typeof u === 'string' && u.startsWith(SCOPE);
 const isWeb = u => /^https?:/i.test(u);
@@ -88,7 +94,8 @@ function createWindow() {
     else if (ctrl && i.shift && k.toLowerCase() === 'i') { wc.toggleDevTools(); e.preventDefault(); }
   });
 
-  win.loadURL(APP_URL);
+  wc.setUserAgent(withTag(wc.getUserAgent()));
+  win.loadURL(APP_URL, { userAgent: wc.getUserAgent() });
 }
 
 app.on('second-instance', () => {
@@ -97,8 +104,7 @@ app.on('second-instance', () => {
 
 app.whenReady().then(() => {
   Menu.setApplicationMenu(null);
-  // Oznaka po kojoj sajt zna da je otvoren iz Windows programa (iz pregledača se traži preuzimanje aplikacije)
-  app.userAgentFallback = app.userAgentFallback + ' AtmosRadionicaApp/' + app.getVersion();
+  session.defaultSession.setUserAgent(withTag(session.defaultSession.getUserAgent()));
   app.setAppUserModelId('io.github.gembirdt-bit.atmosradionica');
 
   // Dozvole koje aplikacija koristi: kamera (OCR saobraćajne), obaveštenja (podsetnici),

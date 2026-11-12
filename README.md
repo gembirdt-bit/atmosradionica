@@ -46,6 +46,9 @@ Potreban je Google Chrome (na većini telefona je već instaliran).
 
 ## Verzije
 
+### 1.6.3
+- Popravljeno otvaranje Windows programa
+
 ### 1.6.2
 - Bezbednija prijava
 
