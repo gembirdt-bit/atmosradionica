@@ -9,3 +9,7 @@ android/local.properties
 # Windows (Electron)
 windows/node_modules/
 windows/dist/
+
+# Sajt (minifikovana verzija)
+node_modules/
+dist/
