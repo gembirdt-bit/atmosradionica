@@ -20,7 +20,7 @@ Podaci se čuvaju na uređaju, a svi uređaji istog naloga se međusobno sinhron
 - **PDV** — opciono (20% / 10%), cene sa ili bez PDV-a
 - **Garancija** — broj dana se štampa na računu
 - **Sinhronizacija** — isti podaci na svim uređajima naloga (telefon, tablet, računar)
-- **Backup** — dnevne interne kopije, automatski upis u folder jednom dnevno (Windows), izvoz / uvoz baze (JSON), CSV naloga i vozila
+- **Rezervna kopija** — jednim dugmetom napravi ili vrati kopiju; automatske dnevne kopije na uređaju i upis u folder jednom dnevno (Windows); CSV za Excel
 - **Automatsko ažuriranje** — nova verzija stiže sama, bez ponovne instalacije
 
 ## Instalacija
@@ -48,6 +48,9 @@ Potreban je Google Chrome (na većini telefona je već instaliran).
 - Ako prelaziš sa ranije verzije u pregledaču: tamo klikni **Izvezi podatke (JSON)**, pa u aplikaciji **Podešavanja → ⬆ Uvezi bazu**.
 
 ## Verzije
+
+### 1.8.4
+- Jednostavnija rezervna kopija: dugmad **Napravi rezervnu kopiju** i **Vrati rezervnu kopiju** (iz fajla ili iz automatskih kopija na uređaju); CSV i brisanje podataka su pod „Napredno“
 
 ### 1.8.3
 - Popravljeno zatvaranje tastature na telefonu pri dodiru polja

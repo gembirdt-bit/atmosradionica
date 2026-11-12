@@ -250,7 +250,7 @@ body{max-width:100vw;overflow-x:clip;touch-action:pan-y pinch-zoom}
 <script>
 'use strict';
 if(window.ATMOS_BLOCKED)throw new Error('Atmos Radionica: otvori Android ili Windows aplikaciju');
-const VER='1.8.3';
+const VER='1.8.4';
 let authState='locked'; /* locked = mora prijava; ok = licenca važi; expired = licenca istekla (samo pregled) */
 let RO=true; /* režim samo za pregled dok se ne potvrdi prijava */
 const $=id=>document.getElementById(id);
@@ -330,7 +330,7 @@ async function fbWrite(manual){
 async function fbPick(){try{const h=await showDirectoryPicker({mode:'readwrite',id:'atmos-radionica'});await idbSet('fbDir',h);S().fbName=h.name;persist();await fbWrite(true)}catch(e){if(e&&e.name!=='AbortError')toast('Folder nije izabran')}render()}
 async function fbAllow(){try{const h=await idbGet('fbDir');const p=await h.requestPermission({mode:'readwrite'});if(p==='granted'){await fbWrite(true)}}catch{toast('Dozvola nije data')}render()}
 async function fbClear(){await idbDel('fbDir').catch(()=>{});S().fbName='';S().lastFolder='';fbNeedPerm=false;persist();render()}
-function backupDue(){const n=num(S().backupDays);if(!n||!hasData())return false;const last=[S().lastExport,(S().lastFolder||'').slice(0,10)].filter(Boolean).sort().pop();return !last||-dayDiff(last)>=n}
+function backupDue(){const n=num(S().backupDays);if(!n||!hasData())return false;if(!S().syncOff&&typeof sy!=='undefined'&&sy.last&&Date.now()-sy.last<7*864e5)return false;const last=[S().lastExport,(S().lastFolder||'').slice(0,10)].filter(Boolean).sort().pop();return !last||-dayDiff(last)>=n}
 
 /* ---------- STATUSI / PODSETNICI ---------- */
 function remStat(r){
@@ -413,7 +413,7 @@ function orderCard(o){
   <div class="row wrap" style="gap:8px;margin-top:4px">${stBadge(o.status)}${o.paid?'<span class="badge b-ok">Plaćeno</span>':(o.status==='zavrsen'?'<span class="badge b-warn">Za naplatu</span>':'')}${o.invNo?`<span class="badge b-n">${esc(o.invNo)}</span>`:o.proNo?`<span class="badge b-n">${esc(o.proNo)}</span>`:''}${o.notified?`<span class="badge b-ok">💬 Obavešten</span>`:''}${o.status!=='zavrsen'?(()=>{let h='';if(o.promised){const d=dayDiff(o.promised);h+=`<span class="badge ${d<0?'b-bad':d<=1?'b-warn':'b-n'}">⏱ Rok ${fmtDate(o.promised)}${d<0?' · kasni':d===0?' · danas':''}</span>`}const dd=-dayDiff(o.date);if(dd>0)h+=`<span class="badge b-n">${dd} d u radionici</span>`;return h})():''}</div>
   ${o.complaint?`<div class="small" style="margin-top:4px">${esc(o.complaint)}</div>`:''}
   <div class="acts">${next?`<button class="btn-s btn-p" data-act="stnext" data-id="${o.id}" data-st="${next[0]}">${next[1]}</button>`:(!o.paid?`<button class="btn-s btn-p" data-act="paid" data-id="${o.id}">💳 Naplaćeno</button>`:'')}${o.status==='zavrsen'?`<button class="btn-s btn-v" data-act="notify" data-id="${o.id}">💬 Obavesti</button>`:''}<button class="btn-s" data-act="editord" data-id="${o.id}">✏️ Izmeni</button><button class="btn-s" data-act="pickdoc" data-id="${o.id}">🖨️ Štampa</button>${v.phone?`<a class="supLink" style="padding:6px 10px;font-size:.8rem;border-radius:10px" href="tel:${esc(v.phone.replace(/[^\d+]/g,''))}">📞 Pozovi</a>`:''}<button class="btn-s btn-d" data-act="delord" data-id="${o.id}">🗑️</button></div></div></div>`}
-function backupBanner(){return backupDue()?`<div class="card" style="border-color:var(--warn)"><h3>💾 Vreme je za rezervnu kopiju</h3><div class="row wrap"><button class="btn-p grow" data-act="export">⬇ Izvezi bazu (JSON)</button></div></div>`:''}
+function backupBanner(){return backupDue()?`<div class="card" style="border-color:var(--warn)"><h3>💾 Vreme je za rezervnu kopiju</h3><div class="small muted" style="margin:-4px 0 8px">Podaci nisu sačuvani na serveru više od 7 dana. Napravi rezervnu kopiju i sačuvaj je van uređaja.</div><div class="row wrap"><button class="btn-p grow" data-act="export">⬇ Izvezi bazu (JSON)</button></div></div>`:''}
 function fbBanner(){return fbNeedPerm?`<div class="card" style="border-color:var(--warn)"><h3>📁 Backup u folder čeka dozvolu</h3><button class="btn-p" data-act="fballow" style="width:100%">Dozvoli upis backup-a</button></div>`:''}
 function pgPregled(){
   const act=db.orders.filter(o=>o.status!=='zavrsen'),n=s=>db.orders.filter(o=>o.status===s).length;
@@ -543,18 +543,14 @@ function pgPodesavanja(){
    <label class="l">Tema</label><div class="seg" style="margin-bottom:12px">${[['dark','Tamna'],['light','Svetla'],['auto','Auto']].map(([k,t])=>`<button data-set="theme" data-val="${k}" class="${s.theme===k?'on':''}">${t}</button>`).join('')}</div>
    <label class="l">Boja akcenta</label><div class="sw" style="margin-bottom:12px">${ACCS.map(c=>`<button data-set="accent" data-val="${c}" style="background:${c}" class="${s.accent===c?'on':''}" aria-label="${c}"></button>`).join('')}</div>
    <label class="l">Veličina teksta</label><div class="seg">${[['s','Manji'],['m','Normalan'],['l','Veći']].map(([k,t])=>`<button data-set="fs" data-val="${k}" class="${s.fs===k?'on':''}">${t}</button>`).join('')}</div></div>
-  <div class="card"><h3>🛡️ Automatski backup</h3>
-   <div class="small" style="margin-bottom:10px"><b>1. Interne kopije</b> — pravi se jedna dnevno, čuva se poslednjih ${s.snapKeep}. Štite od greške (npr. slučajno brisanje), ali ne od brisanja podataka pregledača.</div>
-   <div class="grid g2" style="margin-bottom:10px"><div><label class="l">Čuvaj kopija</label><select class="fld" data-cfg="snapKeep" data-n="1">${[3,7,14,30].map(k=>`<option ${k===num(s.snapKeep)?'selected':''}>${k}</option>`).join('')}</select></div>
-   <div><label class="l">Podsetnik za izvoz</label><select class="fld" data-cfg="backupDays" data-n="1">${[[0,'Isključen'],[1,'Dnevno'],[7,'Nedeljno'],[14,'Na 2 nedelje'],[30,'Mesečno']].map(([k,t])=>`<option value="${k}" ${num(s.backupDays)===k?'selected':''}>${t}</option>`).join('')}</select></div></div>
-   <div class="small" style="margin-bottom:8px"><b>2. Backup u folder</b> — na Windows računaru aplikacija sama upisuje fajl u folder koji izabereš (npr. Google Drive, OneDrive ili USB) <b>jednom dnevno</b>, pri prvoj izmeni ili pokretanju u danu. Jedan fajl po danu.</div>
-   ${fbSupported()?`<div class="row wrap" style="margin-bottom:6px;gap:8px"><button class="btn-p grow" data-act="fbpick">📁 ${s.fbName?'Promeni folder':'Izaberi folder'}</button>${s.fbName?`<button class="grow" data-act="fbnow">💾 Backup sada</button><button class="btn-d" data-act="fbclear">✕</button>`:''}</div>
-   <div class="small muted" style="margin-bottom:10px">${s.fbName?'Folder: <b>'+esc(s.fbName)+'</b>'+(s.lastFolder?' · poslednji upis '+new Date(s.lastFolder).toLocaleString('sr-RS',{dateStyle:'short',timeStyle:'short'}):'')+(fbNeedPerm?' · <span style="color:var(--warn)">čeka dozvolu</span> <button class="btn-s" data-act="fballow">Dozvoli</button>':''):'Nije podešeno.'} Pregledač traži potvrdu dozvole jednom po sesiji.</div>`
-   :`<div class="small muted" style="margin-bottom:10px">Na ovom uređaju automatski upis u folder nije moguć (telefoni i tableti). Koristi izvoz baze ispod.</div>`}
-   <div class="grid g2" style="margin-bottom:8px"><button data-act="export">⬇ Izvezi bazu (JSON)</button><button data-act="import">⬆ Uvezi bazu</button><button data-act="csvord">📑 CSV nalozi</button><button data-act="csvveh">📑 CSV vozila</button></div>
-   <div class="small muted" style="margin-bottom:10px">Poslednji izvoz: ${s.lastExport?fmtDate(s.lastExport):'nikad'}. Uvoz može da spoji podatke sa postojećim ili da ih zameni.</div>
-   ${snaps.length?`<label class="l">Interne kopije</label>${snaps.map((x,i)=>`<div class="row sp small" style="padding:6px 0;border-bottom:1px solid var(--line)"><span>${new Date(x.t).toLocaleString('sr-RS',{dateStyle:'short',timeStyle:'short'})} <span class="muted">· ${esc(x.reason)}</span></span><button class="btn-s" data-act="restore" data-i="${i}">Vrati</button></div>`).join('')}<div style="height:10px"></div>`:''}
-   <button class="btn-d" data-act="reset" style="width:100%">⚠️ Obriši sve podatke</button></div>
+  <div class="card"><h3>🛡️ Rezervna kopija</h3>
+   <div class="small muted" style="margin-bottom:10px">Podaci se sami čuvaju na serveru (sinhronizacija) i jednom dnevno na uređaju. Rezervnu kopiju napravi povremeno i sačuvaj je van telefona (Drive, e-pošta, računar).</div>
+   <div class="grid g2" style="margin-bottom:6px"><button class="btn-p" data-act="export">💾 Napravi rezervnu kopiju</button><button data-act="restoredlg">↩ Vrati rezervnu kopiju</button></div>
+   <div class="small muted" style="margin-bottom:10px">Poslednja rezervna kopija: ${s.lastExport?fmtDate(s.lastExport):'nikad'}</div>
+   ${fbSupported()?`<div class="row sp wrap" style="gap:8px;padding:8px 0;border-top:1px solid var(--line)"><div class="small"><b>📁 Automatski u folder</b> <span class="muted">(jednom dnevno)</span><br><span class="muted">${s.fbName?esc(s.fbName)+(s.lastFolder?' · '+new Date(s.lastFolder).toLocaleString('sr-RS',{dateStyle:'short',timeStyle:'short'}):''):'Nije izabran'}</span>${fbNeedPerm?' <span style="color:var(--warn)">· čeka dozvolu</span>':''}</div><div class="row" style="gap:6px">${fbNeedPerm?'<button class="btn-s btn-p" data-act="fballow">Dozvoli</button>':''}<button class="btn-s" data-act="fbpick">${s.fbName?'Promeni':'Izaberi folder'}</button>${s.fbName?'<button class="btn-s" data-act="fbnow">Sada</button><button class="btn-s btn-d" data-act="fbclear">✕</button>':''}</div></div>`:''}
+   <details style="border-top:1px solid var(--line);padding-top:8px"><summary class="small muted" style="cursor:pointer">Napredno</summary>
+    <div class="grid g2" style="margin:10px 0 8px"><button class="btn-s" data-act="csvord">📑 Nalozi za Excel (CSV)</button><button class="btn-s" data-act="csvveh">📑 Vozila za Excel (CSV)</button></div>
+    <button class="btn-d" data-act="reset" style="width:100%">⚠️ Obriši sve podatke</button></details></div>
   <div class="card"><h3>🔄 Ažuriranje aplikacije</h3><div class="small muted" style="margin-bottom:8px">Verzija ${VER}. Aplikacija sama proverava novu verziju sa sajta pri svakom pokretanju i na svakih 30 minuta, a kad je nađe prikaže traku „Osveži“. Podaci ostaju netaknuti.</div><button data-act="upcheck" style="width:100%">🔍 Proveri ažuriranje</button></div>
   ${supportCard()}`;
 }
@@ -1097,11 +1093,18 @@ document.addEventListener('click',async e=>{
     case'editmech':openMech(id);break;
     case'delmech':delMech(id);break;
     case'sharefile':shareFile();break;
-    case'export':S().lastExport=todayStr();persist();download(`atmos-radionica-backup-${todayStr()}.json`,JSON.stringify(db),'application/json');toast('Kopija preuzeta');render();break;
-    case'import':$('impFile').click();break;
+    case'export':S().lastExport=todayStr();persist();download(`atmos-radionica-rezervna-kopija-${todayStr()}.json`,JSON.stringify(db),'application/json');toast('Rezervna kopija preuzeta ✔');render();break;
+    case'import':if($('dlg').open)$('dlg').close();$('impFile').click();break;
     case'csvord':csvOrders();break;
     case'csvveh':csvVeh();break;
-    case'restore':restoreSnap(+d.i);break;
+    case'restore':$('dlg').close();restoreSnap(+d.i);break;
+    case'restoredlg':{
+      $('dlgBody').innerHTML=`<h3>↩ Vrati rezervnu kopiju</h3>
+       <div class="small muted" style="margin-bottom:10px">Izaberi fajl rezervne kopije (.json) ili jednu od automatskih kopija sa ovog uređaja. Pre vraćanja aplikacija sačuva trenutno stanje, pa se i to može vratiti.</div>
+       <button class="btn-p" data-act="import" style="width:100%;margin-bottom:12px">📂 Izaberi fajl rezervne kopije</button>
+       ${snaps.length?`<label class="l">Automatske kopije na ovom uređaju</label>${snaps.map((x,i)=>`<div class="row sp small" style="padding:6px 0;border-bottom:1px solid var(--line)"><span>${new Date(x.t).toLocaleString('sr-RS',{dateStyle:'short',timeStyle:'short'})}</span><button class="btn-s" data-act="restore" data-i="${i}">Vrati</button></div>`).join('')}`:'<div class="small muted">Još nema automatskih kopija na ovom uređaju.</div>'}
+       <div class="row" style="margin-top:14px"><button class="grow" data-act="dlgclose">Zatvori</button></div>`;
+      if(!$('dlg').open)$('dlg').showModal();break}
     case'fbpick':fbPick();break;
     case'fballow':fbAllow();break;
     case'fbnow':fbWrite(true).then(ok=>{if(!ok){fbNeedPerm=true;render()}});break;
