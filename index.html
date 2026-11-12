@@ -250,7 +250,7 @@ body{max-width:100vw;overflow-x:clip;touch-action:pan-y pinch-zoom}
 <script>
 'use strict';
 if(window.ATMOS_BLOCKED)throw new Error('Atmos Radionica: otvori Android ili Windows aplikaciju');
-const VER='1.8.2';
+const VER='1.8.3';
 let authState='locked'; /* locked = mora prijava; ok = licenca važi; expired = licenca istekla (samo pregled) */
 let RO=true; /* režim samo za pregled dok se ne potvrdi prijava */
 const $=id=>document.getElementById(id);
@@ -1489,7 +1489,10 @@ function authStart(){
 
 /* ---------- START ---------- */
 matchMedia('(prefers-color-scheme: light)').addEventListener?.('change',()=>S().theme==='auto'&&applyTheme());
-addEventListener('resize',()=>{clearTimeout(addEventListener.t);addEventListener.t=setTimeout(()=>{if(!$('dlg').open)render()},200)});
+/* ponovno crtanje samo kad se promeni ŠIRINA (npr. okretanje telefona). Otvaranje tastature na telefonu menja samo visinu —
+   ranije je to iscrtavalo ekran iznova i odmah zatvaralo tastaturu. */
+let lastW=innerWidth;
+addEventListener('resize',()=>{clearTimeout(addEventListener.t);addEventListener.t=setTimeout(()=>{if(innerWidth===lastW)return;lastW=innerWidth;if(!$('dlg').open)bgRender()},200)});
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch{}
 loadSnaps().then(()=>takeSnap('automatski')).then(()=>{if(ui.tab==='podesavanja')bgRender()});
 (function(){if(linkClients()){try{localStorage.setItem(KEY,JSON.stringify(db))}catch{}}

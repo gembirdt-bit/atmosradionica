@@ -49,6 +49,9 @@ Potreban je Google Chrome (na većini telefona je već instaliran).
 
 ## Verzije
 
+### 1.8.3
+- Popravljeno zatvaranje tastature na telefonu pri dodiru polja
+
 ### 1.8.2
 - Popravljen unos u Podešavanjima: tastatura se više ne zatvara i tekst se ne prekida tokom kucanja
 
