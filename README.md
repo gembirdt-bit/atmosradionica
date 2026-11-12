@@ -49,6 +49,9 @@ Potreban je Google Chrome (na većini telefona je već instaliran).
 
 ## Verzije
 
+### 1.8.1
+- Izbor šifre plaćanja u IPS QR kodu (289, 189 ili 221); podrazumevano 289
+
 ### 1.8.0
 - **Mušterije** — imenik: jedna mušterija sa više vozila, kontakt (poziv, Viber, WhatsApp, SMS), adresa i PIB za firme, istorija naloga, plaćeno i **za naplatu** po mušteriji. Postojeća vozila se sama povezuju sa mušterijama po imenu i telefonu vlasnika.
 - **NBS IPS QR kod** na predračunu i neplaćenom računu — mušterija plaća skeniranjem u m-bankingu. Uključuje se u Podešavanja → Podaci radionice (potreban ispravan tekući račun).

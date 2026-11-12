@@ -250,7 +250,7 @@ body{max-width:100vw;overflow-x:clip;touch-action:pan-y pinch-zoom}
 <script>
 'use strict';
 if(window.ATMOS_BLOCKED)throw new Error('Atmos Radionica: otvori Android ili Windows aplikaciju');
-const VER='1.8.0';
+const VER='1.8.1';
 let authState='locked'; /* locked = mora prijava; ok = licenca važi; expired = licenca istekla (samo pregled) */
 let RO=true; /* režim samo za pregled dok se ne potvrdi prijava */
 const $=id=>document.getElementById(id);
@@ -277,7 +277,7 @@ const statCls={bad:'b-bad',warn:'b-warn',ok:'b-ok',n:'b-n'};
 
 /* ---------- PODACI ---------- */
 const DEF_MSG='Poštovani {ime}, Vaše vozilo {tablica} ({vozilo}) je završeno i spremno za preuzimanje. Iznos: {iznos}.\n{radionica}{telefon}';
-const DEF_SET=()=>({theme:'dark',accent:'#ea580c',fs:'m',shop:{name:'',addr:'',city:'',phone:'',email:'',pib:'',mb:'',acc:'',bank:''},pdvRate:0,pdvIncl:true,labourRate:0,warnDays:14,warnKm:1000,autoRem:true,remMonths:12,remKm:10000,valid:7,docNote:'',invNote:'',backupDays:7,snapKeep:7,lastExport:'',lastFolder:'',fbName:'',notif:false,lastNotif:'',logo:'',sig:true,autoNotify:true,cc:'381',msgDone:DEF_MSG,warranty:0,ipsQr:true});
+const DEF_SET=()=>({theme:'dark',accent:'#ea580c',fs:'m',shop:{name:'',addr:'',city:'',phone:'',email:'',pib:'',mb:'',acc:'',bank:''},pdvRate:0,pdvIncl:true,labourRate:0,warnDays:14,warnKm:1000,autoRem:true,remMonths:12,remKm:10000,valid:7,docNote:'',invNote:'',backupDays:7,snapKeep:7,lastExport:'',lastFolder:'',fbName:'',notif:false,lastNotif:'',logo:'',sig:true,autoNotify:true,cc:'381',msgDone:DEF_MSG,warranty:0,ipsQr:true,ipsSf:'289'});
 const fresh=()=>({v:1,settings:DEF_SET(),mechs:[],vehicles:[],orders:[],reminders:[],parts:[],clients:[],counters:{}});
 function norm(d){const s=d.settings||{};d.settings=Object.assign(DEF_SET(),s);d.settings.shop=Object.assign(DEF_SET().shop,s.shop||{});['mechs','vehicles','orders','reminders','parts','clients'].forEach(k=>d[k]=Array.isArray(d[k])?d[k]:[]);d.counters=d.counters||{};return d}
 function load(){try{const r=JSON.parse(localStorage.getItem(KEY));if(r&&typeof r==='object')return norm(r)}catch{}return fresh()}
@@ -505,7 +505,8 @@ function pgPodesavanja(){
    <div style="grid-column:1/-1"><label class="l">Naziv</label><input class="fld" data-cfg="shop.name" value="${esc(sh.name)}" placeholder="Auto servis …"></div>
    ${fi('Adresa','shop.addr',sh.addr)}${fi('Mesto','shop.city',sh.city)}${fi('Telefon','shop.phone',sh.phone)}${fi('E-pošta','shop.email',sh.email)}${fi('PIB','shop.pib',sh.pib)}${fi('Matični broj','shop.mb',sh.mb)}
    ${fi('Tekući račun','shop.acc',sh.acc)}${fi('Banka','shop.bank',sh.bank)}</div>
-   <div class="row sp" style="margin-top:12px;gap:10px;flex-wrap:wrap"><div><b>NBS IPS QR kod</b> <span class="small muted">na predračunu i neplaćenom računu</span><div class="small" style="margin-top:3px">${!sh.acc?'<span class="muted">Upiši tekući račun (npr. 160-1234567-89) da bi se QR prikazao.</span>':ipsAcc(sh.acc)?'<span style="color:var(--ok)">✔ Tekući račun je ispravan</span>':'<span style="color:var(--warn)">⚠ Tekući račun nije ispravan (kontrolni broj) — QR se neće prikazati</span>'}</div></div><select class="fld" style="width:auto" data-cfg="ipsQr" data-b="1"><option value="1" ${s.ipsQr!==false?'selected':''}>Uključen</option><option value="0" ${s.ipsQr===false?'selected':''}>Isključen</option></select></div></div>
+   <div class="row sp" style="margin-top:12px;gap:10px;flex-wrap:wrap"><div><b>NBS IPS QR kod</b> <span class="small muted">na predračunu i neplaćenom računu</span><div class="small" style="margin-top:3px">${!sh.acc?'<span class="muted">Upiši tekući račun (npr. 160-1234567-89) da bi se QR prikazao.</span>':ipsAcc(sh.acc)?'<span style="color:var(--ok)">✔ Tekući račun je ispravan</span>':'<span style="color:var(--warn)">⚠ Tekući račun nije ispravan (kontrolni broj) — QR se neće prikazati</span>'}</div></div><select class="fld" style="width:auto" data-cfg="ipsQr" data-b="1"><option value="1" ${s.ipsQr!==false?'selected':''}>Uključen</option><option value="0" ${s.ipsQr===false?'selected':''}>Isključen</option></select></div>
+   ${s.ipsQr!==false?`<div style="margin-top:10px"><label class="l">Šifra plaćanja u QR kodu</label><select class="fld" data-cfg="ipsSf">${[['289','289 — po nalogu građana'],['189','189 — po nalogu građana (gotovina)'],['221','221 — promet robe i usluga']].map(([k,t])=>`<option value="${k}" ${String(s.ipsSf||'289')===k?'selected':''}>${t}</option>`).join('')}</select></div>`:''}</div>
   <div class="card"><h3>🖼️ Logo radionice <span class="muted small">(štampa se na nalogu, predračunu i računu)</span></h3>
    ${s.logo?`<div class="logoPrev"><img src="${esc(s.logo)}" alt="Logo"></div>`:'<div class="small muted" style="margin-bottom:10px">Logo nije dodat. Preporuka: PNG sa providnom pozadinom ili JPG.</div>'}
    <div class="row wrap" style="gap:8px"><button class="btn-p grow" data-act="logopick">🖼️ ${s.logo?'Promeni logo':'Dodaj logo'}</button>${s.logo?'<button class="btn-d" data-act="logodel">🗑️ Ukloni</button>':''}</div></div>
@@ -955,7 +956,7 @@ function ipsText(o,kind){
   const no=kind==='racun'?o.invNo:o.proNo;
   const nm=ipsClean(sh.name,40),place=ipsClean([sh.addr,sh.city].filter(Boolean).join(', '),66-nm.length);
   const ro=String(no||'').replace(/[^\d-]/g,'').replace(/^-+|-+$/g,'').replace(/-{2,}/g,'-');
-  const f=['K:PR','V:01','C:1','R:'+acc,'N:'+nm+(place?'\r\n'+place:''),'I:RSD'+(Math.round(t*100)/100).toFixed(2).replace('.',','),'SF:221',
+  const f=['K:PR','V:01','C:1','R:'+acc,'N:'+nm+(place?'\r\n'+place:''),'I:RSD'+(Math.round(t*100)/100).toFixed(2).replace('.',','),'SF:'+(/^[12]\d\d$/.test(String(S().ipsSf))?S().ipsSf:'289'),
     'S:'+ipsClean((kind==='racun'?'Račun ':'Predračun ')+(no||''),35)];
   if(ro)f.push('RO:00'+ro.slice(0,23));
   return f.join('|');
