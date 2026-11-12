@@ -49,6 +49,9 @@ Potreban je Google Chrome (na većini telefona je već instaliran).
 
 ## Verzije
 
+### 1.8.2
+- Popravljen unos u Podešavanjima: tastatura se više ne zatvara i tekst se ne prekida tokom kucanja
+
 ### 1.8.1
 - Izbor šifre plaćanja u IPS QR kodu (289, 189 ili 221); podrazumevano 289
 

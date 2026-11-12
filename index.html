@@ -250,7 +250,7 @@ body{max-width:100vw;overflow-x:clip;touch-action:pan-y pinch-zoom}
 <script>
 'use strict';
 if(window.ATMOS_BLOCKED)throw new Error('Atmos Radionica: otvori Android ili Windows aplikaciju');
-const VER='1.8.1';
+const VER='1.8.2';
 let authState='locked'; /* locked = mora prijava; ok = licenca važi; expired = licenca istekla (samo pregled) */
 let RO=true; /* režim samo za pregled dok se ne potvrdi prijava */
 const $=id=>document.getElementById(id);
@@ -319,13 +319,13 @@ let fbNeedPerm=false;
 async function fbWrite(manual){
   const h=await idbGet('fbDir').catch(()=>null);if(!h)return false;
   let p=await h.queryPermission({mode:'readwrite'});
-  if(p!=='granted'){fbNeedPerm=true;if(ui.tab==='podesavanja'||ui.tab==='pregled')render();return false}
+  if(p!=='granted'){fbNeedPerm=true;if(ui.tab==='podesavanja'||ui.tab==='pregled')bgRender();return false}
   fbNeedPerm=false;
   const f=await h.getFileHandle(`atmos-radionica-backup-${todayStr()}.json`,{create:true});
   const w=await f.createWritable();await w.write(JSON.stringify(db));await w.close();
   S().lastFolder=new Date().toISOString();persist();
   try{const names=[];for await(const [n] of h.entries()){if(/^atmos-radionica-backup-\d{4}-\d{2}-\d{2}\.json$/.test(n))names.push(n)}names.sort();const keep=Math.max(3,num(S().snapKeep)*2);while(names.length>keep)await h.removeEntry(names.shift())}catch{}
-  if(manual)toast('Backup upisan u folder ✔');if(ui.tab==='podesavanja')render();return true;
+  if(manual)toast('Backup upisan u folder ✔');if(ui.tab==='podesavanja')bgRender();return true;
 }
 async function fbPick(){try{const h=await showDirectoryPicker({mode:'readwrite',id:'atmos-radionica'});await idbSet('fbDir',h);S().fbName=h.name;persist();await fbWrite(true)}catch(e){if(e&&e.name!=='AbortError')toast('Folder nije izabran')}render()}
 async function fbAllow(){try{const h=await idbGet('fbDir');const p=await h.requestPermission({mode:'readwrite'});if(p==='granted'){await fbWrite(true)}}catch{toast('Dozvola nije data')}render()}
@@ -388,6 +388,13 @@ function render(){
   const P={pregled:pgPregled,nalozi:pgNalozi,vozila:pgVozila,musterije:pgMusterije,podsetnici:pgPodsetnici,delovi:pgDelovi,mehanicari:pgMeh,izvestaji:pgIzvestaji,vise:pgVise,podesavanja:pgPodesavanja};
   $('view').innerHTML=P[ui.tab]();
 }
+/* osvežavanje u pozadini (sinhronizacija, provera licence, backup, čuvanje polja): ne dok korisnik kuca u polju,
+   jer bi ponovno crtanje ekrana zatvorilo tastaturu i prekinulo unos — sačeka da korisnik izađe iz polja */
+let rPend=false;
+const typing=()=>{const a=document.activeElement;return!!(a&&a.closest&&a.closest('#view')&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)&&a.id!=='q')};
+function bgRender(){if(typing()){rPend=true;return}rPend=false;render()}
+/* „change“ stiže pre nego što fokus pređe u sledeće polje, pa se odluka donosi tek kad se fokus pomeri */
+document.addEventListener('focusout',()=>setTimeout(()=>{if(rPend&&!typing())bgRender()},200));
 const stBadge=s=>{const x=ST[s]||ST.uzet;return`<span class="badge" style="background:${x.c}26;color:${x.c}">${x.l}</span>`};
 
 /* ---------- STRANICE ---------- */
@@ -1119,7 +1126,7 @@ document.addEventListener('change',e=>{
   const t=e.target,d=t.dataset;
   if(t.id==='mechF'){ui.mech=t.value;render();return}
   if(d.i!==undefined&&d.k==='name'){const it=ed.o.items[+d.i];if(!num(it.price)&&it.name){let last=null;db.orders.forEach(o=>(o.items||[]).forEach(x=>{if(x.name===it.name&&num(x.price))last=x}));if(last){it.price=last.price;it.type=last.type;drawOrder()}}return}
-  if(d.cfg!==undefined){if(RO){roBlock();render();return}let v=t.value;if(d.b)v=v==='1';else if(d.n||t.type==='number')v=num(v);setPath(S(),d.cfg,v);persist();if(['pdvRate','pdvIncl','snapKeep','backupDays','ipsQr'].includes(d.cfg)||d.cfg.startsWith('shop.'))render()}
+  if(d.cfg!==undefined){if(RO){roBlock();render();return}let v=t.value;if(d.b)v=v==='1';else if(d.n||t.type==='number')v=num(v);setPath(S(),d.cfg,v);persist();if(d.cfg==='shop.name')$('shopName').textContent=v||'';if(['pdvRate','pdvIncl','snapKeep','backupDays','ipsQr'].includes(d.cfg)||d.cfg.startsWith('shop.'))setTimeout(bgRender,0)}
 });
 
 /* ---------- OBAVEŠTENJA ---------- */
@@ -1315,7 +1322,7 @@ function updAuthUI(){
   const b=$('authBtn');
   b.textContent=authState==='expired'?'⛔ Licenca istekla · Odjava':'👤 '+authUser+(authDays!=null?' · '+authDays+' d':'')+' · Odjava';
   b.style.borderColor=authState==='expired'?'var(--bad)':authState==='ok'&&authDays!=null&&authDays<=7?'var(--warn)':'';
-  render();
+  bgRender();
   $('appFoot').innerHTML=footHtml();
 }
 function setAuth(state,name,days,exp){const was=authState;if(state!=='locked'&&was==='locked')syncSoon(1500);authState=state;authUser=state==='locked'?'':name||'';authDays=state==='ok'&&days!=null?days:null;authExp=exp||'';updAuthUI()}
@@ -1378,7 +1385,7 @@ async function authRecheck(){
   const s=loadAuth();if(!s)return;
   try{
     const r=await serverCheck(s.u,s.p);
-    if(r.status==='ok'||r.status==='expired'){if(ui.tab==='podesavanja')setTimeout(render,0)}
+    if(r.status==='ok'||r.status==='expired'){if(ui.tab==='podesavanja')setTimeout(bgRender,0)}
     if(r.status==='ok'){storeAuth(s.u,s.p,r.days,r.expires);if(authState!=='ok'||authDays!==(r.days==null?null:Number(r.days))||authExp!==(r.expires||''))setAuth('ok',s.u,r.days,r.expires)}
     else if(r.status==='expired'){storeAuth(s.u,s.p,0,r.expires,true);if(authState!=='expired')setAuth('expired',s.u,0,r.expires)}
     else if(r.status==='limit'){clearAuth();lock(limitMsg(r))}
@@ -1414,7 +1421,7 @@ async function syncNow(manual){
   if(!navigator.onLine){syMsg='Nema interneta — izmene čekaju';if(manual)toast(syMsg);return}
   /* dok je otvoren prozor za izmenu, sačekaj da se zatvori */
   if(document.querySelector('dialog[open]')){syncSoon(20000);return}
-  syBusy=true;if(manual){syMsg='Sinhronizacija…';if(ui.tab==='podesavanja')render()}
+  syBusy=true;if(manual){syMsg='Sinhronizacija…';if(ui.tab==='podesavanja')bgRender()}
   try{
     const loc=syLocal(),changes={},sent={};
     if(authState==='ok'){
@@ -1449,9 +1456,9 @@ async function syncNow(manual){
     if(got&&linkClients()&&authState==='ok')syncSoon(3000);
     Object.keys(j.counters||{}).forEach(k=>{const n=Number(j.counters[k])||0;if(n>(db.counters[k]||0)){db.counters[k]=n;got++}});
     sy.rev=j.rev;sy.last=Date.now();sy.err='';sy.user=s.u.toLowerCase();syStore();
-    if(got){try{localStorage.setItem(KEY,JSON.stringify(db))}catch{}updateBadge();if(!document.querySelector('dialog[open]')&&$('docView').hidden)render()}
+    if(got){try{localStorage.setItem(KEY,JSON.stringify(db))}catch{}updateBadge();if(!document.querySelector('dialog[open]')&&$('docView').hidden)bgRender()}
     syMsg='';if(manual)toast(got?'Sinhronizovano ✔ — stiglo izmena: '+got:'Sinhronizovano ✔');
-    if(ui.tab==='podesavanja'&&!got)render();
+    if(ui.tab==='podesavanja'&&!got)bgRender();
   }catch(e){syMsg='Nema veze sa serverom — pokušaću ponovo';sy.err=syMsg;syStore();if(manual)toast(syMsg)}
   finally{syBusy=false}
 }
@@ -1484,7 +1491,7 @@ function authStart(){
 matchMedia('(prefers-color-scheme: light)').addEventListener?.('change',()=>S().theme==='auto'&&applyTheme());
 addEventListener('resize',()=>{clearTimeout(addEventListener.t);addEventListener.t=setTimeout(()=>{if(!$('dlg').open)render()},200)});
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch{}
-loadSnaps().then(()=>takeSnap('automatski')).then(()=>{if(ui.tab==='podesavanja')render()});
+loadSnaps().then(()=>takeSnap('automatski')).then(()=>{if(ui.tab==='podesavanja')bgRender()});
 (function(){if(linkClients()){try{localStorage.setItem(KEY,JSON.stringify(db))}catch{}}
   const q=new URLSearchParams(location.search);const t=q.get('tab');if(['nalozi','vozila','musterije','podsetnici','delovi','mehanicari','izvestaji','podesavanja'].includes(t))ui.tab=t;
   render();if(q.get('new')==='order')setTimeout(()=>openOrder(),50);
