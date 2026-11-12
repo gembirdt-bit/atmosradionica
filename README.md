@@ -20,6 +20,10 @@ Svi podaci se čuvaju lokalno na uređaju — nema naloga, servera ni praćenja.
 - **Izvoz / uvoz baze** — JSON (spajanje ili zamena), CSV naloga i vozila, deljenje kopije (Drive, e-pošta, Viber)
 - **Automatsko ažuriranje** — aplikacija pri svakom pokretanju i na svakih 30 minuta proverava novu verziju na sajtu i prikaže traku „Osveži“
 
+## Verzija 1.6.2
+
+- **Ograničen broj uređaja po nalogu** (podrazumevano 3). Svaki uređaj ima svoj ID koji se šalje pri prijavi; server ga upisuje u kolonu D tabele. Kad je nalog popunjen, novi uređaj dobija poruku da se javi podršci. Zahteva novu verziju `Code.gs` (oznaka `uredjaji-1`).
+
 ## Verzija 1.6.1
 
 - Aplikacija se koristi **samo kao Android APK ili Windows program**. Otvorena kao sajt ili PWA iz pregledača, prikazuje ekran sa dugmićima za preuzimanje i dugmetom **Izvezi podatke (JSON)**, da se postojeća baza prenese u aplikaciju (Podešavanja → ⬆ Uvezi bazu). Na `localhost`-u provera je isključena zbog testiranja.
@@ -45,7 +49,9 @@ Svi podaci se čuvaju lokalno na uređaju — nema naloga, servera ni praćenja.
 
 ## Prijava (korisničko ime + PIN)
 
-Pri ulasku aplikacija traži korisničko ime i PIN; dok se ne prijaviš, sadržaj je skriven. PIN se proverava preko Google Apps Script-a koji čita privatnu Google tabelu (kolona A korisničko ime, B PIN, C datum isteka). Važeća licenca = normalan rad. Istekla licenca = **režim samo za pregled** (izmene su blokirane). Pogrešan PIN = nema ulaska.
+Pri ulasku aplikacija traži korisničko ime i PIN; dok se ne prijaviš, sadržaj je skriven. PIN se proverava preko Google Apps Script-a koji čita privatnu Google tabelu (kolona A korisničko ime, B PIN, C datum isteka, D uređaji — popunjava server, E najviše uređaja — prazno = 3). Važeća licenca = normalan rad. Istekla licenca = **režim samo za pregled** (izmene su blokirane). Pogrešan PIN = nema ulaska.
+
+**Uređaji:** nalog radi na najviše 3 uređaja (ili broj iz kolone E). U koloni D je jedan uređaj po redu (`ID · Android · poslednji put`). Obriši red da oslobodiš mesto (novi telefon); stavi `-` ispred reda da taj uređaj trajno isključiš. Odjava u aplikaciji ne oslobađa mesto. Brisanje podataka aplikacije ili nova instalacija daju uređaju novi ID.
 
 - U podnožju se vidi preostalo vreme licence i taster **Aktivacija** (WhatsApp poruka za aktivaciju / produženje).
 - Prijava se proverava na svakih 30 minuta kad ima interneta. Bez interneta aplikacija radi najviše 7 dana od poslednje uspešne provere; posle toga traži internet i novu prijavu.
