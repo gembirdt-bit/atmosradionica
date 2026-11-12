@@ -72,6 +72,30 @@ python3 -m http.server 8080
 
 Zatim `http://localhost:8080`. Service worker i instalacija rade na `localhost`, ali ne preko `file://`.
 
+## Android (APK) i Windows aplikacija
+
+Pored PWA verzije, aplikacija postoji i kao **Android APK** (`android/`) i **Windows program** (`windows/`). Obe verzije otvaraju sajt `https://gembirdt-bit.github.io/atmosradionica/` u sopstvenom prozoru, pa se **ažuriraju same** (kao PWA, `git push` je dovoljan) i rade bez interneta posle prvog pokretanja. Nova instalacija treba samo kad se menja sam omotač.
+
+- **Android** — Trusted Web Activity (koristi Chrome): štampa, PDF, deljenje, kamera, obaveštenja i licenca rade kao u Chrome-u. Podaci su isti kao u PWA instaliranoj iz Chrome-a na tom telefonu.
+- **Windows** — Electron: instalacija (`Setup`) ili verzija bez instalacije (`Portable`). Podaci su odvojeni od Chrome/Edge PWA — prebaci ih preko **Izvoz / uvoz baze** (JSON).
+
+### Pravljenje
+
+Fajlove pravi GitHub Actions (`.github/workflows/aplikacije.yml`): **Actions → Android i Windows aplikacije → Run workflow**. Gotovi `.apk`, `.exe` i `assetlinks.json` se pojave u **Releases**.
+
+Jednokratno podešavanje (**Settings → Secrets and variables → Actions → New repository secret**):
+
+| Tajna | Sadržaj |
+|---|---|
+| `ANDROID_KEYSTORE_BASE64` | potpisni ključ (`.jks`) kodiran u base64 |
+| `ANDROID_KEYSTORE_PASSWORD` | lozinka ključa (alias je `atmos`) |
+
+Bez njih APK se potpisuje privremenim ključem i sledeće verzije ne mogu da se instaliraju preko njega. **Ključ čuvaj na sigurnom i nikad ga ne stavljaj u repozitorijum** — bez istog ključa ažuriranje APK-a nije moguće.
+
+### Pun ekran na Androidu (bez adresne trake)
+
+Android proverava da sajt „poznaje“ aplikaciju preko fajla `https://gembirdt-bit.github.io/.well-known/assetlinks.json`. Pošto je ovo projekt-sajt, fajl mora u poseban repozitorijum **`gembirdt-bit.github.io`** (GitHub Pages iz `main`), sa sadržajem `assetlinks.json` iz Releases, plus prazan fajl `.nojekyll` (inače GitHub Pages ne objavljuje folder `.well-known`). Dok toga nema, aplikacija radi, ali se na vrhu vidi tanka traka sa adresom.
+
 ## Kako radi automatsko ažuriranje
 
 1. Izmeni aplikaciju i podigni verziju na **dva mesta**: `const VERSION` u `sw.js` i `const VER` u `index.html`.

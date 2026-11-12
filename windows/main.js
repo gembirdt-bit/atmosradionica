@@ -1,0 +1,114 @@
+/* Atmos Radionica — Windows omotač (Electron)
+   Otvara sajt aplikacije u sopstvenom prozoru. Sadržaj se ažurira sam sa sajta
+   (isti service worker kao PWA), a bez interneta radi iz keša. */
+const { app, BrowserWindow, Menu, shell, session } = require('electron');
+const path = require('path');
+
+const APP_URL = 'https://gembirdt-bit.github.io/atmosradionica/index.html';
+const SCOPE = 'https://gembirdt-bit.github.io/atmosradionica/';
+const OFFLINE = path.join(__dirname, 'offline.html');
+
+if (!app.requestSingleInstanceLock()) { app.quit(); }
+
+let win;
+const inScope = u => typeof u === 'string' && u.startsWith(SCOPE);
+const isWeb = u => /^https?:/i.test(u);
+
+function openExternal(url) {
+  // wa.me, viber://, sms:, tel:, mailto:, linkovi ka drugim sajtovima → sistemska aplikacija / pregledač
+  shell.openExternal(url).catch(() => {});
+}
+
+function createWindow() {
+  win = new BrowserWindow({
+    width: 1280,
+    height: 860,
+    minWidth: 360,
+    minHeight: 500,
+    backgroundColor: '#111318',
+    title: 'Atmos Radionica',
+    icon: path.join(__dirname, 'icon.png'),
+    autoHideMenuBar: true,
+    show: false,
+    webPreferences: { contextIsolation: true, sandbox: true, spellcheck: false }
+  });
+  win.once('ready-to-show', () => win.show());
+
+  const wc = win.webContents;
+
+  // Novi prozori: unutar aplikacije ostaju u aplikaciji, ostalo ide napolje
+  wc.setWindowOpenHandler(({ url }) => {
+    if (inScope(url) || url === 'about:blank' || url.startsWith('blob:')) {
+      return { action: 'allow', overrideBrowserWindowOptions: { autoHideMenuBar: true, icon: path.join(__dirname, 'icon.png') } };
+    }
+    openExternal(url);
+    return { action: 'deny' };
+  });
+
+  // location.href = 'sms:…' / 'viber://…' i linkovi van aplikacije
+  wc.on('will-navigate', (e, url) => {
+    if (inScope(url) || url.startsWith('file:')) return;
+    e.preventDefault();
+    openExternal(url);
+  });
+
+  // Nema interneta pri prvom pokretanju (pre nego što se keš napuni) → poruka sa „Pokušaj ponovo“
+  wc.on('did-fail-load', (e, code, desc, url, isMain) => {
+    if (!isMain || code === -3 /* prekinuto */ || !isWeb(url)) return;
+    win.loadFile(OFFLINE);
+  });
+
+  // Desni klik: iseci / kopiraj / nalepi
+  wc.on('context-menu', (e, p) => {
+    const items = [];
+    if (p.isEditable) {
+      items.push({ label: 'Iseci', role: 'cut', enabled: p.editFlags.canCut },
+                 { label: 'Kopiraj', role: 'copy', enabled: p.editFlags.canCopy },
+                 { label: 'Nalepi', role: 'paste', enabled: p.editFlags.canPaste },
+                 { type: 'separator' },
+                 { label: 'Izaberi sve', role: 'selectAll' });
+    } else if (p.selectionText) {
+      items.push({ label: 'Kopiraj', role: 'copy' });
+    }
+    if (p.linkURL && isWeb(p.linkURL) && !inScope(p.linkURL)) {
+      items.push({ label: 'Otvori link u pregledaču', click: () => openExternal(p.linkURL) });
+    }
+    if (items.length) Menu.buildFromTemplate(items).popup({ window: win });
+  });
+
+  // Prečice: F5 osveži, Ctrl +/−/0 zum, F11 ceo ekran, Ctrl+Shift+I alati (za podršku)
+  wc.on('before-input-event', (e, i) => {
+    if (i.type !== 'keyDown') return;
+    const k = i.key, ctrl = i.control || i.meta;
+    if (k === 'F5' || (ctrl && k.toLowerCase() === 'r')) { wc.reload(); e.preventDefault(); }
+    else if (k === 'F11') { win.setFullScreen(!win.isFullScreen()); e.preventDefault(); }
+    else if (ctrl && (k === '+' || k === '=')) { wc.setZoomLevel(wc.getZoomLevel() + 0.5); e.preventDefault(); }
+    else if (ctrl && k === '-') { wc.setZoomLevel(wc.getZoomLevel() - 0.5); e.preventDefault(); }
+    else if (ctrl && k === '0') { wc.setZoomLevel(0); e.preventDefault(); }
+    else if (ctrl && i.shift && k.toLowerCase() === 'i') { wc.toggleDevTools(); e.preventDefault(); }
+  });
+
+  win.loadURL(APP_URL);
+}
+
+app.on('second-instance', () => {
+  if (win) { if (win.isMinimized()) win.restore(); win.focus(); }
+});
+
+app.whenReady().then(() => {
+  Menu.setApplicationMenu(null);
+  app.setAppUserModelId('io.github.gembirdt-bit.atmosradionica');
+
+  // Dozvole koje aplikacija koristi: kamera (OCR saobraćajne), obaveštenja (podsetnici),
+  // folder za automatski backup, kopiranje u clipboard. Samo za sajt aplikacije.
+  const allowed = new Set(['media', 'notifications', 'fileSystem', 'clipboard-sanitized-write', 'clipboard-read', 'persistent-storage', 'fullscreen']);
+  const ok = (wc, perm, origin) => allowed.has(perm) && (
+    (origin && SCOPE.startsWith(origin)) || (wc && (inScope(wc.getURL()) || wc.getURL().startsWith('file:'))));
+  session.defaultSession.setPermissionRequestHandler((wc, perm, cb, details) =>
+    cb(ok(wc, perm, details && details.requestingUrl ? new URL(details.requestingUrl).origin : '')));
+  session.defaultSession.setPermissionCheckHandler((wc, perm, origin) => ok(wc, perm, origin));
+
+  createWindow();
+});
+
+app.on('window-all-closed', () => app.quit());

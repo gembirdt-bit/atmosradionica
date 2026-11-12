@@ -1,0 +1,41 @@
+{
+  "name": "atmos-radionica",
+  "productName": "Atmos Radionica",
+  "version": "1.6.0",
+  "description": "Atmos Radionica — auto servis: radni nalozi, vozila, mehaničari, podsetnici, predračun i račun",
+  "author": "Gemb-Bit Željko Ilić",
+  "license": "UNLICENSED",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win --x64 --publish never"
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "io.github.gembirdt-bit.atmosradionica",
+    "productName": "Atmos Radionica",
+    "copyright": "Gemb-Bit Željko Ilić",
+    "files": ["main.js", "offline.html", "icon.png"],
+    "directories": { "output": "dist" },
+    "win": {
+      "icon": "icon.png",
+      "target": ["nsis", "portable"]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Atmos Radionica",
+      "artifactName": "AtmosRadionica-Setup-${version}.exe"
+    },
+    "portable": {
+      "artifactName": "AtmosRadionica-Portable-${version}.exe"
+    }
+  }
+}

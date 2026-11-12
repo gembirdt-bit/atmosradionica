@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appName">Atmos Radionica</string>
+    <string name="launcherName">Atmos Radionica</string>
+    <string name="hostName">gembirdt-bit.github.io</string>
+    <string name="launchUrl">https://gembirdt-bit.github.io/atmosradionica/index.html</string>
+    <string name="providerAuthority">io.github.gembirdt_bit.atmosradionica.fileprovider</string>
+    <string name="assetStatements" translatable="false">
+        [{
+            \"relation\": [\"delegate_permission/common.handle_all_urls\"],
+            \"target\": {\"namespace\": \"web\", \"site\": \"https://gembirdt-bit.github.io\"}
+        }]
+    </string>
+</resources>
