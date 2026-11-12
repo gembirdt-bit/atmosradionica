@@ -97,6 +97,8 @@ app.on('second-instance', () => {
 
 app.whenReady().then(() => {
   Menu.setApplicationMenu(null);
+  // Oznaka po kojoj sajt zna da je otvoren iz Windows programa (iz pregledača se traži preuzimanje aplikacije)
+  app.userAgentFallback = app.userAgentFallback + ' AtmosRadionicaApp/' + app.getVersion();
   app.setAppUserModelId('io.github.gembirdt-bit.atmosradionica');
 
   // Dozvole koje aplikacija koristi: kamera (OCR saobraćajne), obaveštenja (podsetnici),

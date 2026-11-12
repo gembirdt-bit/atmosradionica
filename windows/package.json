@@ -32,10 +32,10 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Atmos Radionica",
-      "artifactName": "AtmosRadionica-Setup-${version}.exe"
+      "artifactName": "AtmosRadionica-Setup.exe"
     },
     "portable": {
-      "artifactName": "AtmosRadionica-Portable-${version}.exe"
+      "artifactName": "AtmosRadionica-Portable.exe"
     }
   }
 }

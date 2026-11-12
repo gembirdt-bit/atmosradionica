@@ -20,6 +20,11 @@ Svi podaci se čuvaju lokalno na uređaju — nema naloga, servera ni praćenja.
 - **Izvoz / uvoz baze** — JSON (spajanje ili zamena), CSV naloga i vozila, deljenje kopije (Drive, e-pošta, Viber)
 - **Automatsko ažuriranje** — aplikacija pri svakom pokretanju i na svakih 30 minuta proverava novu verziju na sajtu i prikaže traku „Osveži“
 
+## Verzija 1.6.1
+
+- Aplikacija se koristi **samo kao Android APK ili Windows program**. Otvorena kao sajt ili PWA iz pregledača, prikazuje ekran sa dugmićima za preuzimanje i dugmetom **Izvezi podatke (JSON)**, da se postojeća baza prenese u aplikaciju (Podešavanja → ⬆ Uvezi bazu). Na `localhost`-u provera je isključena zbog testiranja.
+- Fajlovi u Releases imaju stalna imena (`AtmosRadionica.apk`, `AtmosRadionica-Setup.exe`, `AtmosRadionica-Portable.exe`), pa linkovi `releases/latest/download/…` uvek vode na najnoviju verziju.
+
 ## Verzija 1.6.0
 
 - **Podeli PDF** — nalog, predračun i račun jednim klikom kao PDF fajl u bilo koju aplikaciju (Viber, WhatsApp, e-pošta, Drive…); gde deljenje nije podržano, PDF se preuzima. PDF je A4 sa marginama od 12 mm (stranice su slika dokumenta, tekst u PDF-u nije moguće selektovati)

@@ -68,7 +68,7 @@ jobs:
       - name: APK i assetlinks.json
         run: |
           mkdir -p out
-          cp android/app/build/outputs/apk/release/app-release.apk "out/AtmosRadionica-${VERSION_NAME}.apk"
+          cp android/app/build/outputs/apk/release/app-release.apk out/AtmosRadionica.apk
           FP=$(keytool -list -v -keystore "$KEYSTORE_FILE" -storepass "$KEYSTORE_PASSWORD" | grep -oP 'SHA256: \K.*')
           printf '[{\n  "relation": ["delegate_permission/common.handle_all_urls"],\n  "target": {\n    "namespace": "android_app",\n    "package_name": "io.github.gembirdt_bit.atmosradionica",\n    "sha256_cert_fingerprints": ["%s"]\n  }\n}]\n' "$FP" > out/assetlinks.json
           echo "### Android APK ${VERSION_NAME} (versionCode ${VERSION_CODE})" >> "$GITHUB_STEP_SUMMARY"
@@ -99,8 +99,8 @@ jobs:
         with:
           name: windows
           path: |
-            windows/dist/AtmosRadionica-Setup-*.exe
-            windows/dist/AtmosRadionica-Portable-*.exe
+            windows/dist/AtmosRadionica-Setup.exe
+            windows/dist/AtmosRadionica-Portable.exe
 
   objavi:
     needs: [verzija, android, windows]
@@ -117,10 +117,11 @@ jobs:
           name: Atmos Radionica ${{ needs.verzija.outputs.ver }} — Android i Windows
           target_commitish: ${{ github.sha }}
           body: |
-            **Android:** preuzmi `AtmosRadionica-*.apk` na telefon i otvori ga (dozvoli instalaciju iz nepoznatih izvora). Potreban je Chrome.
-            **Windows:** `AtmosRadionica-Setup-*.exe` je instalacija, `AtmosRadionica-Portable-*.exe` radi bez instalacije. Ako Windows prikaže „Windows je zaštitio računar“, klikni **Više informacija → Ipak pokreni**.
+            **Android:** preuzmi `AtmosRadionica.apk` na telefon i otvori ga (dozvoli instalaciju iz nepoznatih izvora). Potreban je Chrome.
+            **Windows:** `AtmosRadionica-Setup.exe` je instalacija, `AtmosRadionica-Portable.exe` radi bez instalacije. Ako Windows prikaže „Windows je zaštitio računar“, klikni **Više informacija → Ipak pokreni**.
 
             Obe aplikacije otvaraju sajt aplikacije i same se ažuriraju — nova verzija sajta stiže bez nove instalacije. Prvo pokretanje traži internet, posle radi i bez njega.
+          make_latest: true
           files: |
             izlaz/*.apk
             izlaz/*.exe
