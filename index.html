@@ -250,7 +250,7 @@ body{max-width:100vw;overflow-x:clip;touch-action:pan-y pinch-zoom}
 <script>
 'use strict';
 if(window.ATMOS_BLOCKED)throw new Error('Atmos Radionica: otvori Android ili Windows aplikaciju');
-const VER='1.8.4';
+const VER='1.8.5';
 let authState='locked'; /* locked = mora prijava; ok = licenca važi; expired = licenca istekla (samo pregled) */
 let RO=true; /* režim samo za pregled dok se ne potvrdi prijava */
 const $=id=>document.getElementById(id);
@@ -551,6 +551,7 @@ function pgPodesavanja(){
    <details style="border-top:1px solid var(--line);padding-top:8px"><summary class="small muted" style="cursor:pointer">Napredno</summary>
     <div class="grid g2" style="margin:10px 0 8px"><button class="btn-s" data-act="csvord">📑 Nalozi za Excel (CSV)</button><button class="btn-s" data-act="csvveh">📑 Vozila za Excel (CSV)</button></div>
     <button class="btn-d" data-act="reset" style="width:100%">⚠️ Obriši sve podatke</button></details></div>
+  ${authState!=='locked'?syncCard()+licCard():''}
   <div class="card"><h3>🔄 Ažuriranje aplikacije</h3><div class="small muted" style="margin-bottom:8px">Verzija ${VER}. Aplikacija sama proverava novu verziju sa sajta pri svakom pokretanju i na svakih 30 minuta, a kad je nađe prikaže traku „Osveži“. Podaci ostaju netaknuti.</div><button data-act="upcheck" style="width:100%">🔍 Proveri ažuriranje</button></div>
   ${supportCard()}`;
 }
@@ -1285,7 +1286,7 @@ function licCard(){
 }
 function supportCard(){
   const l=supportLinks();
-  return`${authState!=='locked'&&ui.tab==='podesavanja'?syncCard()+licCard():''}<div class="supCard"><span class="muted">🛟 Tehnička podrška</span><a href="${esc(l.wa)}" target="_blank" rel="noopener">💬 WhatsApp ${SUPPORT_TEL}</a><a href="${esc(l.ml)}">✉️ ${SUPPORT_MAIL}</a></div>`;
+  return`<div class="supCard"><span class="muted">🛟 Tehnička podrška</span><a href="${esc(l.wa)}" target="_blank" rel="noopener">💬 WhatsApp ${SUPPORT_TEL}</a><a href="${esc(l.ml)}">✉️ ${SUPPORT_MAIL}</a></div>`;
 }
 
 /* ---------- PRIJAVA (korisničko ime + PIN preko Google Apps Script) ---------- */

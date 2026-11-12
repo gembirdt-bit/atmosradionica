@@ -49,6 +49,9 @@ Potreban je Google Chrome (na većini telefona je već instaliran).
 
 ## Verzije
 
+### 1.8.5
+- Podešavanja: rezervna kopija i sinhronizacija su jedna do druge, ažuriranje aplikacije je na dnu
+
 ### 1.8.4
 - Jednostavnija rezervna kopija: dugmad **Napravi rezervnu kopiju** i **Vrati rezervnu kopiju** (iz fajla ili iz automatskih kopija na uređaju); CSV i brisanje podataka su pod „Napredno“
 
