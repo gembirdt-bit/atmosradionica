@@ -46,6 +46,10 @@ Potreban je Google Chrome (na većini telefona je već instaliran).
 
 ## Verzije
 
+### 1.6.5
+- Dugme Aktivacija menja boju: tamno dok je licenca aktivna, zeleno kad ističe, crveno kad je istekla
+- U Podešavanjima kartica **Licenca**: korisnik, trajanje licence, maksimalni i prijavljeni broj uređaja
+
 ### 1.6.4
 - Tehnička podrška je na dnu Podešavanja, u manjem obliku
 

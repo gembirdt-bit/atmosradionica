@@ -118,6 +118,7 @@ body.locked>*:not(dialog):not(script){visibility:hidden!important}
 .foot-in .lic{flex:1;min-width:200px}
 .foot-in .lic.warn{color:var(--warn)}.foot-in .lic.bad{color:var(--bad)}
 .foot-in .supLink{padding:8px 12px;font-size:.85rem}
+.supLink.bad{background:var(--bad);border-color:var(--bad);color:#fff;font-weight:600}
 @media print{#appFoot{display:none}}
 
 /* ===== v1.5 — mobilni prikaz, delovi, izveštaji, logo ===== */
@@ -244,7 +245,7 @@ body{max-width:100vw;overflow-x:clip;touch-action:pan-y pinch-zoom}
 <script>
 'use strict';
 if(window.ATMOS_BLOCKED)throw new Error('Atmos Radionica: otvori Android ili Windows aplikaciju');
-const VER='1.6.4';
+const VER='1.6.5';
 let authState='locked'; /* locked = mora prijava; ok = licenca važi; expired = licenca istekla (samo pregled) */
 let RO=true; /* režim samo za pregled dok se ne potvrdi prijava */
 const $=id=>document.getElementById(id);
@@ -1135,9 +1136,20 @@ function supportLinks(){
     ml:'mailto:'+SUPPORT_MAIL+'?subject='+encodeURIComponent('Atmos Radionica — tehnička podrška')+'&body='+encodeURIComponent('Opišite problem:\n\n\n---\n'+info)
   };
 }
+function licCard(){
+  const s=loadAuth()||{},d=authDev;
+  const row=(l,v,c)=>`<div class="row sp" style="padding:6px 0;border-bottom:1px solid var(--line)"><span class="muted">${l}</span><b style="${c?'color:var(--'+c+')':''}">${v}</b></div>`;
+  const lic=authState==='expired'?['Istekla'+(authExp?' '+esc(authExp):''),'bad']:authDays==null?['Neograničeno','']:[authDays+' '+plDan(authDays)+(authExp?' (do '+esc(authExp)+')':''),authDays<=7?'warn':''];
+  return`<div class="card"><h3>🔑 Licenca</h3>
+   ${row('Korisnik',esc(authUser))}
+   ${row('Licenca',lic[0],lic[1])}
+   ${row('Maksimalni broj uređaja',d?d.max:'—')}
+   ${row('Prijavljeno uređaja',d?d.n+' od '+d.max:'—',d&&d.n>=d.max?'warn':'')}
+   <div class="small muted" style="margin-top:8px">${d?'Za novi uređaj ili zamenu telefona javi se podršci.':'Podatak o uređajima stiže pri sledećoj proveri sa serverom.'}</div></div>`;
+}
 function supportCard(){
   const l=supportLinks();
-  return`<div class="supCard"><span class="muted">🛟 Tehnička podrška</span><a href="${esc(l.wa)}" target="_blank" rel="noopener">💬 WhatsApp ${SUPPORT_TEL}</a><a href="${esc(l.ml)}">✉️ ${SUPPORT_MAIL}</a></div>`;
+  return`${authState!=='locked'&&ui.tab==='podesavanja'?licCard():''}<div class="supCard"><span class="muted">🛟 Tehnička podrška</span><a href="${esc(l.wa)}" target="_blank" rel="noopener">💬 WhatsApp ${SUPPORT_TEL}</a><a href="${esc(l.ml)}">✉️ ${SUPPORT_MAIL}</a></div>`;
 }
 
 /* ---------- PRIJAVA (korisničko ime + PIN preko Google Apps Script) ---------- */
@@ -1156,7 +1168,8 @@ const freshAuth=s=>Date.now()-s.t<OFFLINE_DAYS*864e5;
 const stateOf=s=>(s.expired||(daysLeft(s)!=null&&daysLeft(s)<=0))?'expired':'ok';
 function roBlock(){toast(authState==='expired'?'🔒 Licenca je istekla — samo pregled. Klikni „Aktivacija“.':'🔒 Režim samo za pregled')}
 function loadAuth(){try{const s=JSON.parse(localStorage.getItem(AUTH_KEY));return s&&s.u&&s.p?s:null}catch{return null}}
-function storeAuth(u,p,days,exp,expired){try{localStorage.setItem(AUTH_KEY,JSON.stringify({u,p,days:days==null?null:Number(days),exp:exp||'',expired:!!expired,t:Date.now()}))}catch{}}
+let authDev=null; /* {n: prijavljeno uređaja, max: najviše} — šalje server (Code.gs uredjaji-2) */
+function storeAuth(u,p,days,exp,expired){try{localStorage.setItem(AUTH_KEY,JSON.stringify({u,p,days:days==null?null:Number(days),exp:exp||'',expired:!!expired,t:Date.now(),dev:authDev}))}catch{}}
 function clearAuth(){try{localStorage.removeItem(AUTH_KEY)}catch{}}
 const plDan=n=>(n%10===1&&n%100!==11)?'dan':'dana';
 function activationLink(){
@@ -1169,7 +1182,7 @@ function footHtml(){
   if(authState==='expired'){cls='bad';txt='⛔ Licenca je istekla'+(authExp?' ('+authExp+')':'')+' — aplikacija radi samo za pregled'}
   else if(authDays==null)txt='✔ Licenca: neograničeno';
   else{cls=authDays<=7?'warn':'';txt='⏳ Licenca: preostalo <b>'+authDays+'</b> '+plDan(authDays)+(authExp?' (do '+esc(authExp)+')':'')}
-  return`<div class="foot-in"><div class="lic ${cls}">${txt}<div class="small muted">${esc(authUser)} · v${VER}</div></div><a class="supLink wa" href="${esc(activationLink())}" target="_blank" rel="noopener">🔑 Aktivacija</a></div>`;
+  return`<div class="foot-in"><div class="lic ${cls}">${txt}<div class="small muted">${esc(authUser)} · v${VER}</div></div><a class="supLink act ${authState==='expired'?'bad':authDays!=null&&authDays<=7?'wa':''}" href="${esc(activationLink())}" target="_blank" rel="noopener">🔑 Aktivacija</a></div>`;
 }
 function updAuthUI(){
   RO=authState!=='ok';
@@ -1195,7 +1208,9 @@ async function serverCheck(u,p){
   if(!AUTH_URL||AUTH_URL.startsWith('OVDE'))throw new Error('no-url');
   const r=await fetch(AUTH_URL+'?user='+encodeURIComponent(u)+'&pin='+encodeURIComponent(p)+'&device='+encodeURIComponent(deviceId())+'&dname='+encodeURIComponent(deviceName()),{cache:'no-store'});
   if(!r.ok)throw new Error('http '+r.status);
-  return r.json();
+  const j=await r.json();
+  if(j&&j.maxDevices!=null)authDev={n:Number(j.devices)||0,max:Number(j.maxDevices)};
+  return j;
 }
 function openAuth(msg){
   $('authBody').innerHTML=`<h3 style="margin:0 0 4px">Prijava</h3>
@@ -1237,6 +1252,7 @@ async function authRecheck(){
   const s=loadAuth();if(!s)return;
   try{
     const r=await serverCheck(s.u,s.p);
+    if(r.status==='ok'||r.status==='expired'){if(ui.tab==='podesavanja')setTimeout(render,0)}
     if(r.status==='ok'){storeAuth(s.u,s.p,r.days,r.expires);if(authState!=='ok'||authDays!==(r.days==null?null:Number(r.days))||authExp!==(r.expires||''))setAuth('ok',s.u,r.days,r.expires)}
     else if(r.status==='expired'){storeAuth(s.u,s.p,0,r.expires,true);if(authState!=='expired')setAuth('expired',s.u,0,r.expires)}
     else if(r.status==='limit'){clearAuth();lock(limitMsg(r))}
@@ -1250,7 +1266,7 @@ async function authRecheck(){
 }
 function authStart(){
   $('authBtn').onclick=()=>{if(confirm('Odjaviti se? Za ponovni ulaz biće potrebni korisničko ime i PIN.')){clearAuth();lock()}};
-  const s=loadAuth();
+  const s=loadAuth();if(s&&s.dev)authDev=s.dev;
   if(s&&freshAuth(s)){setAuth(stateOf(s),s.u,daysLeft(s),s.exp);authRecheck()}
   else lock(s?'Prijava je istekla — poveži se na internet i prijavi se ponovo.':'');
   setInterval(authRecheck,RECHECK_MIN*60*1000);
