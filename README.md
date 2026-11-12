@@ -46,6 +46,9 @@ Potreban je Google Chrome (na većini telefona je već instaliran).
 
 ## Verzije
 
+### 1.6.4
+- Tehnička podrška je na dnu Podešavanja, u manjem obliku
+
 ### 1.6.3
 - Popravljeno otvaranje Windows programa
 

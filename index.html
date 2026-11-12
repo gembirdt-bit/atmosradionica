@@ -110,6 +110,8 @@ body.ro [data-act=scanpick],body.ro [data-act=newpart],body.ro [data-act=editpar
 #authDlg::backdrop{background:rgba(0,0,0,.65)}
 .supLink{display:inline-block;padding:10px 14px;border:1px solid var(--line);background:var(--card2);border-radius:12px;color:var(--txt);text-decoration:none;font-size:.9rem}
 .supLink.wa{background:#25d366;border-color:#25d366;color:#fff;font-weight:600}
+.supCard{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;margin:18px 4px 8px;padding-top:12px;border-top:1px solid var(--line);font-size:.82rem}
+.supCard a{color:var(--muted);text-decoration:none;white-space:nowrap}.supCard a:hover{color:var(--txt);text-decoration:underline}
 body.locked>*:not(dialog):not(script){visibility:hidden!important}
 .foot{max-width:1100px;margin:0 auto 12px;padding:0 12px}
 .foot-in{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:10px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;font-size:.85rem}
@@ -242,7 +244,7 @@ body{max-width:100vw;overflow-x:clip;touch-action:pan-y pinch-zoom}
 <script>
 'use strict';
 if(window.ATMOS_BLOCKED)throw new Error('Atmos Radionica: otvori Android ili Windows aplikaciju');
-const VER='1.6.3';
+const VER='1.6.4';
 let authState='locked'; /* locked = mora prijava; ok = licenca važi; expired = licenca istekla (samo pregled) */
 let RO=true; /* režim samo za pregled dok se ne potvrdi prijava */
 const $=id=>document.getElementById(id);
@@ -490,7 +492,6 @@ function pgPodesavanja(){
   const s=S(),sh=s.shop,fi=(l,p,v,t,extra)=>`<div><label class="l">${l}</label><input class="fld" data-cfg="${p}" ${t==='n'?'type="number" inputmode="decimal" step="any" data-n="1"':''} value="${esc(v)}" ${extra||''}></div>`;
   const last=[['Interni',snaps[0]&&snaps[0].t],['Folder',s.lastFolder],['Izvoz',s.lastExport]];
   return`
-  ${supportCard()}
   <div class="card"><h3>🏢 Podaci radionice <span class="muted small">(na štampanim dokumentima)</span></h3><div class="grid g2">
    <div style="grid-column:1/-1"><label class="l">Naziv</label><input class="fld" data-cfg="shop.name" value="${esc(sh.name)}" placeholder="Auto servis …"></div>
    ${fi('Adresa','shop.addr',sh.addr)}${fi('Mesto','shop.city',sh.city)}${fi('Telefon','shop.phone',sh.phone)}${fi('E-pošta','shop.email',sh.email)}${fi('PIB','shop.pib',sh.pib)}${fi('Matični broj','shop.mb',sh.mb)}
@@ -537,7 +538,8 @@ function pgPodesavanja(){
    <div class="small muted" style="margin-bottom:10px">Poslednji izvoz: ${s.lastExport?fmtDate(s.lastExport):'nikad'}. Uvoz može da spoji podatke sa postojećim ili da ih zameni.</div>
    ${snaps.length?`<label class="l">Interne kopije</label>${snaps.map((x,i)=>`<div class="row sp small" style="padding:6px 0;border-bottom:1px solid var(--line)"><span>${new Date(x.t).toLocaleString('sr-RS',{dateStyle:'short',timeStyle:'short'})} <span class="muted">· ${esc(x.reason)}</span></span><button class="btn-s" data-act="restore" data-i="${i}">Vrati</button></div>`).join('')}<div style="height:10px"></div>`:''}
    <button class="btn-d" data-act="reset" style="width:100%">⚠️ Obriši sve podatke</button></div>
-  <div class="card"><h3>🔄 Ažuriranje aplikacije</h3><div class="small muted" style="margin-bottom:8px">Verzija ${VER}. Aplikacija sama proverava novu verziju sa sajta pri svakom pokretanju i na svakih 30 minuta, a kad je nađe prikaže traku „Osveži“. Podaci ostaju netaknuti.</div><button data-act="upcheck" style="width:100%">🔍 Proveri ažuriranje</button></div>`;
+  <div class="card"><h3>🔄 Ažuriranje aplikacije</h3><div class="small muted" style="margin-bottom:8px">Verzija ${VER}. Aplikacija sama proverava novu verziju sa sajta pri svakom pokretanju i na svakih 30 minuta, a kad je nađe prikaže traku „Osveži“. Podaci ostaju netaknuti.</div><button data-act="upcheck" style="width:100%">🔍 Proveri ažuriranje</button></div>
+  ${supportCard()}`;
 }
 
 /* ---------- DELOVI (poručivanje) ---------- */
@@ -1135,8 +1137,7 @@ function supportLinks(){
 }
 function supportCard(){
   const l=supportLinks();
-  return`<div class="card"><h3>🛟 Tehnička podrška</h3><div class="small muted" style="margin-bottom:10px">Pomoć oko prijave, licence i korišćenja aplikacije.</div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap"><a class="supLink wa" href="${esc(l.wa)}" target="_blank" rel="noopener">💬 WhatsApp · ${SUPPORT_TEL}</a><a class="supLink" href="${esc(l.ml)}">✉️ ${SUPPORT_MAIL}</a></div></div>`;
+  return`<div class="supCard"><span class="muted">🛟 Tehnička podrška</span><a href="${esc(l.wa)}" target="_blank" rel="noopener">💬 WhatsApp ${SUPPORT_TEL}</a><a href="${esc(l.ml)}">✉️ ${SUPPORT_MAIL}</a></div>`;
 }
 
 /* ---------- PRIJAVA (korisničko ime + PIN preko Google Apps Script) ---------- */
