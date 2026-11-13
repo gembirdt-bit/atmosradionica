@@ -49,6 +49,9 @@ Potreban je Google Chrome (na većini telefona je već instaliran).
 
 ## Verzije
 
+### 1.9.4
+- Probna verzija traje 30 dana
+
 ### 1.9.3
 - Besplatna probna verzija: taster „Isprobaj besplatno“ na prijavi — 7 dana, do 3 vozila, bez izvoza, kopija i sinhronizacije; posle aktivacije podaci ostaju
 
