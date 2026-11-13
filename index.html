@@ -106,6 +106,9 @@ body.ro [data-act=newveh],body.ro [data-act=editveh],body.ro [data-act=delveh],b
 body.ro [data-act=delrem],body.ro [data-act=remdone],body.ro [data-act=remundo],body.ro [data-act=newmech],body.ro [data-act=editmech],
 body.ro [data-act=delmech],body.ro [data-act=import],body.ro [data-act=restore],body.ro [data-act=reset],body.ro [data-act=scancam],
 body.ro [data-act=scanpick],body.ro [data-act=newpart],body.ro [data-act=editpart],body.ro [data-act=delpart],body.ro [data-act=partnext],body.ro [data-act=logopick],body.ro [data-act=logodel],body.ro [data-act=msgreset]{display:none!important}
+.demoBar{background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.45);border-radius:12px;padding:8px 12px;margin-bottom:12px;font-size:.85rem;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+body.demo [data-act=export],body.demo [data-act=restoredlg],body.demo [data-act=import],body.demo [data-act=csvord],body.demo [data-act=csvveh],body.demo [data-act=repprint],body.demo [data-act=docshare],body.demo [data-act=syncnow],body.demo [data-act=synctoggle],body.demo [data-act=fbpick],body.demo [data-act=fbnow]{opacity:.4;filter:grayscale(1);cursor:not-allowed}
+#nav [hidden],[hidden].admtab{display:none!important}
 .roBar{background:rgba(251,191,36,.14);color:var(--warn);border:1px solid rgba(251,191,36,.4);border-radius:12px;padding:8px 12px;margin-bottom:12px;font-size:.85rem}
 #authDlg::backdrop{background:rgba(0,0,0,.65)}
 .supLink{display:inline-block;padding:10px 14px;border:1px solid var(--line);background:var(--card2);border-radius:12px;color:var(--txt);text-decoration:none;font-size:.9rem}
@@ -251,7 +254,7 @@ body{max-width:100vw;overflow-x:clip;touch-action:pan-y pinch-zoom}
 <script>
 'use strict';
 if(window.ATMOS_BLOCKED)throw new Error('Atmos Radionica: otvori Android ili Windows aplikaciju');
-const VER='1.9.2';
+const VER='1.9.3';
 let authState='locked'; /* locked = mora prijava; ok = licenca važi; expired = licenca istekla (samo pregled) */
 let RO=true; /* režim samo za pregled dok se ne potvrdi prijava */
 const $=id=>document.getElementById(id);
@@ -285,7 +288,7 @@ function load(){try{const r=JSON.parse(localStorage.getItem(KEY));if(r&&typeof r
 let db=load();
 const S=()=>db.settings;
 const hasData=()=>db.vehicles.length||db.orders.length||db.reminders.length||db.mechs.length||db.parts.length||db.clients.length;
-function persist(){if(RO)return true;try{localStorage.setItem(KEY,JSON.stringify(db));if(typeof syncSoon==='function')syncSoon();return true}catch{toast('Greška pri čuvanju (memorija puna?) — napravi izvoz!');return false}}
+function persist(){if(RO)return true;if(demoOver()){db=load();toast(DEMO_LIMIT_MSG);setTimeout(render,0);return false}try{localStorage.setItem(KEY,JSON.stringify(db));if(typeof syncSoon==='function')syncSoon();return true}catch{toast('Greška pri čuvanju (memorija puna?) — napravi izvoz!');return false}}
 let bkT=null;
 /* backup u folder: najviše jednom dnevno (ručno „Backup sada“ upisuje uvek) */
 const fbDoneToday=()=>!!S().lastFolder&&ymd(new Date(S().lastFolder))===todayStr();
@@ -317,7 +320,7 @@ async function restoreSnap(i){if(RO){roBlock();return}const s=snaps[i];if(!s)ret
 /* folder backup (File System Access API — Chrome/Edge na računaru) */
 const fbSupported=()=>'showDirectoryPicker' in window;
 let fbNeedPerm=false;
-async function fbWrite(manual){
+async function fbWrite(manual){if(authState==='demo')return false;
   const h=await idbGet('fbDir').catch(()=>null);if(!h)return false;
   let p=await h.queryPermission({mode:'readwrite'});
   if(p!=='granted'){fbNeedPerm=true;if(ui.tab==='podesavanja'||ui.tab==='pregled')bgRender();return false}
@@ -374,7 +377,7 @@ const ui={tab:'pregled',q:'',st:'all',mech:'',rp:'m',rmon:todayStr().slice(0,7),
 const SEC=['vise','korisnici','musterije','delovi','mehanicari','izvestaji','podesavanja'];
 const ACCS=['#ea580c','#2563eb','#16a34a','#dc2626','#7c3aed','#0891b2','#475569'];
 function applyTheme(){const s=S();document.documentElement.dataset.theme=s.theme==='auto'?(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'):s.theme;
-  document.documentElement.style.setProperty('--acc',s.accent);document.body.className=(s.fs==='l'?'fs-l':s.fs==='s'?'fs-s':'')+(RO?' ro':'')+(authState==='locked'?' locked':'');
+  document.documentElement.style.setProperty('--acc',s.accent);document.body.className=(s.fs==='l'?'fs-l':s.fs==='s'?'fs-s':'')+(RO?' ro':'')+(authState==='locked'?' locked':'')+(authState==='demo'?' demo':'');
   document.querySelector('meta[name=theme-color]').content=document.documentElement.dataset.theme==='light'?'#f3f4f6':'#111318'}
 function go(t){ui.tab=t;ui.q='';render();window.scrollTo(0,0)}
 function render(){
@@ -389,7 +392,7 @@ function render(){
   document.querySelectorAll('.admtab').forEach(b=>b.hidden=!isAdmin);
   if(ui.tab==='korisnici'&&!isAdmin)ui.tab='pregled';
   const P={korisnici:pgKorisnici,pregled:pgPregled,nalozi:pgNalozi,vozila:pgVozila,musterije:pgMusterije,podsetnici:pgPodsetnici,delovi:pgDelovi,mehanicari:pgMeh,izvestaji:pgIzvestaji,vise:pgVise,podesavanja:pgPodesavanja};
-  $('view').innerHTML=P[ui.tab]();
+  $('view').innerHTML=(demoExpired()?`<div class="roBar">⛔ Probni period je istekao — aplikacija radi samo za pregled. <a href="${esc(activationLink())}" target="_blank" rel="noopener" style="color:inherit"><b>Aktivacija</b></a></div>`:'')+demoBar()+P[ui.tab]();
 }
 /* osvežavanje u pozadini (sinhronizacija, provera licence, backup, čuvanje polja): ne dok korisnik kuca u polju,
    jer bi ponovno crtanje ekrana zatvorilo tastaturu i prekinulo unos — sačeka da korisnik izađe iz polja */
@@ -771,7 +774,7 @@ const vehFields=()=>[
   {k:'km',l:'Trenutna kilometraža',t:'number',h:1},{k:'color',l:'Boja',h:1},
   {k:'owner',l:'Vlasnik / mušterija',h:1,list:'cliList',ph:'Izaberi ili upiši novo ime'},{k:'phone',l:'Telefon',t:'tel',h:1},
   {k:'note',l:'Napomena',t:'textarea'}];
-function openVeh(id,pre,ctx){if(RO){roBlock();return}
+function openVeh(id,pre,ctx){if(RO){roBlock();return}if(!id&&demoFull()){toast(DEMO_LIMIT_MSG);return}
   vctx=Object.assign({id:id||''},ctx||{});
   const v=id?vehById(id):null;
   const vals=Object.assign({},v||{},pre||{});
@@ -862,7 +865,7 @@ function showDoc(id,kind){
   const o=db.orders.find(x=>x.id===id);if(!o)return;
   if(kind==='predracun'&&!o.proNo){o.proNo=nextNo('P');o.proDate=todayStr();save()}
   if(kind==='racun'&&!o.invNo){o.invNo=nextNo('R');o.invDate=todayStr();save()}
-  docCtx={name:kind+'-'+(kind==='racun'?o.invNo:kind==='predracun'?o.proNo:o.no)};$('docBody').innerHTML=docHtml(o,kind);$('docView').hidden=false;$('docView').scrollTop=0;
+  docCtx={name:kind+'-'+(kind==='racun'?o.invNo:kind==='predracun'?o.proNo:o.no)};$('docBody').innerHTML=docHtml(o,kind)+(authState==='demo'?'<div style="margin-top:16px;padding:6px;border:2px dashed #c00;color:#c00;text-align:center;font-weight:700">DEMO VERZIJA — Atmos Radionica (nije za upotrebu)</div>':'');$('docView').hidden=false;$('docView').scrollTop=0;
   if($('dlg').open)$('dlg').close();
 }
 function docHtml(o,kind){
@@ -1059,6 +1062,8 @@ document.addEventListener('click',async e=>{
   if(d.tab&&!d.act){if($('dlg').open)$('dlg').close();go(d.tab);return}
   const id=d.id;
   if(RO&&WRITE_ACTS.includes(d.act)){roBlock();return}
+  if(authState==='demo'&&DEMO_BLOCK.includes(d.act)){toast('🔒 Nije dostupno u demo verziji — aktiviraj aplikaciju');return}
+  if(d.act==='demoact'){openAuth();return}
   switch(d.act){
     case'dlgclose':$('dlg').close();break;
     case'neword':openOrder(null,d.veh?{vehicleId:d.veh}:null);break;
@@ -1295,7 +1300,7 @@ if('serviceWorker' in navigator&&location.protocol.startsWith('http')){
 /* ---------- TEHNIČKA PODRŠKA ---------- */
 const SUPPORT_MAIL='vasserviserbgd@gmail.com',SUPPORT_WA='381606611488',SUPPORT_TEL='060 661 1488';
 function supportLinks(){
-  const info='Atmos Radionica v'+VER+(authUser?', korisnik: '+authUser:'');
+  const info='Atmos Radionica v'+VER+(authUser&&authUser!=='Demo'?', korisnik: '+authUser:'');
   return{
     wa:'https://wa.me/'+SUPPORT_WA+'?text='+encodeURIComponent('Zdravo, treba mi pomoć oko aplikacije ('+info+').'),
     ml:'mailto:'+SUPPORT_MAIL+'?subject='+encodeURIComponent('Atmos Radionica — tehnička podrška')+'&body='+encodeURIComponent('Opišite problem:\n\n\n---\n'+info)
@@ -1331,33 +1336,53 @@ const daysLeft=s=>s.days==null?null:s.days-Math.floor((Date.now()-s.t)/864e5);
 const freshAuth=s=>Date.now()-s.t<OFFLINE_DAYS*864e5;
 /* stanje na osnovu sačuvane prijave: istekla licenca = samo pregled */
 const stateOf=s=>(s.expired||(daysLeft(s)!=null&&daysLeft(s)<=0))?'expired':'ok';
-function roBlock(){toast(authState==='expired'?'🔒 Licenca je istekla — samo pregled. Klikni „Aktivacija“.':'🔒 Režim samo za pregled')}
+function roBlock(){toast(demoExpired()?'🔒 Probni period je istekao — samo pregled. Za nastavak aktiviraj aplikaciju.':authState==='expired'?'🔒 Licenca je istekla — samo pregled. Klikni „Aktivacija“.':'🔒 Režim samo za pregled')}
+/* ---------- DEMO (probna verzija) ----------
+   7 dana na ovom uređaju, najviše DEMO_MAX vozila, bez izvoza / uvoza / kopija / sinhronizacije.
+   Posle prijave licencom podaci iz demo verzije ostaju. */
+const DEMO_KEY='atmosRadionicaDemo1',DEMO_DAYS=7,DEMO_MAX=3,DEMO_WHAT='vozila';
+const DEMO_LIMIT_MSG='🎁 Demo verzija: najviše '+DEMO_MAX+' '+DEMO_WHAT+'. Aktiviraj aplikaciju za neograničen rad.';
+const DEMO_BLOCK=['export','restoredlg','restore','import','csvord','csvveh','repprint','docshare','syncnow','synctoggle','syadopt','syfresh','fbpick','fbnow','fballow'];
+const demoCount=()=>db.vehicles.length;
+function demoRec(){try{const d=JSON.parse(localStorage.getItem(DEMO_KEY));return d&&d.t?d:null}catch{return null}}
+function demoLeft(){const d=demoRec();return d?Math.max(0,DEMO_DAYS-Math.floor((Date.now()-d.t)/864e5)):DEMO_DAYS}
+const demoUsedUp=()=>!!demoRec()&&demoLeft()<=0;
+const demoExpired=()=>authState==='expired'&&authUser==='Demo';
+const demoOver=()=>authState==='demo'&&demoCount()>DEMO_MAX;
+const demoFull=()=>authState==='demo'&&demoCount()>=DEMO_MAX;
+function demoBegin(){if(demoUsedUp()){toast('Probni period je istekao');return}
+  if(!demoRec())try{localStorage.setItem(DEMO_KEY,JSON.stringify({t:Date.now(),dev:deviceId()}))}catch{}
+  $('authDlg').close();setAuth('demo','Demo',demoLeft());toast('🎁 Demo: '+demoLeft()+' '+plDan(demoLeft())+', do '+DEMO_MAX+' '+DEMO_WHAT)}
+function demoBar(){if(authState!=='demo')return'';const n=demoLeft();
+  return`<div class="demoBar"><span>🎁 <b>Demo verzija</b> · još ${n} ${plDan(n)} · ${demoCount()}/${DEMO_MAX} ${DEMO_WHAT} · izvoz, kopije i sinhronizacija isključeni</span><button class="btn-s btn-p" data-act="demoact">🔑 Aktiviraj</button></div>`}
 function loadAuth(){try{const s=JSON.parse(localStorage.getItem(AUTH_KEY));return s&&s.u&&s.p?s:null}catch{return null}}
 let authDev=null; /* {n: prijavljeno uređaja, max: najviše} — šalje server (Code.gs uredjaji-2) */
 function storeAuth(u,p,days,exp,expired){try{localStorage.setItem(AUTH_KEY,JSON.stringify({u,p,days:days==null?null:Number(days),exp:exp||'',expired:!!expired,t:Date.now(),dev:authDev}))}catch{}}
 function clearAuth(){try{localStorage.removeItem(AUTH_KEY)}catch{}}
 const plDan=n=>(n%10===1&&n%100!==11)?'dan':'dana';
 function activationLink(){
-  const info='Atmos Radionica v'+VER+(authUser?', korisnik: '+authUser:'');
+  const info='Atmos Radionica v'+VER+(authUser&&authUser!=='Demo'?', korisnik: '+authUser:'');
   return'https://wa.me/'+SUPPORT_WA+'?text='+encodeURIComponent('Zdravo, želim da aktiviram / produžim licencu za aplikaciju Atmos Radionica ('+info+').');
 }
 function footHtml(){
   if(authState==='locked')return'';
   let cls='',txt;
+  if(authState==='demo'){const n=demoLeft();return`<div class="foot-in"><div class="lic warn">🎁 Demo verzija — još <b>${n}</b> ${plDan(n)}<div class="small muted">do ${DEMO_MAX} ${DEMO_WHAT} · v${VER}</div></div><a class="supLink act wa" href="${esc(activationLink())}" target="_blank" rel="noopener">🔑 Kupi / aktiviraj</a></div>`}
+  if(demoExpired())return`<div class="foot-in"><div class="lic bad">⛔ Probni period je istekao — samo pregled<div class="small muted">v${VER}</div></div><a class="supLink act bad" href="${esc(activationLink())}" target="_blank" rel="noopener">🔑 Aktivacija</a></div>`;
   if(authState==='expired'){cls='bad';txt='⛔ Licenca je istekla'+(authExp?' ('+authExp+')':'')+' — aplikacija radi samo za pregled'}
   else if(authDays==null)txt='✔ Licenca: neograničeno';
   else{cls=authDays<=7?'warn':'';txt='⏳ Licenca: preostalo <b>'+authDays+'</b> '+plDan(authDays)+(authExp?' (do '+esc(authExp)+')':'')}
   return`<div class="foot-in"><div class="lic ${cls}">${txt}<div class="small muted">${esc(authUser)} · v${VER}</div></div><a class="supLink act ${authState==='expired'?'bad':authDays!=null&&authDays<=7?'wa':''}" href="${esc(activationLink())}" target="_blank" rel="noopener">🔑 Aktivacija</a></div>`;
 }
 function updAuthUI(){
-  RO=authState!=='ok';
+  RO=authState!=='ok'&&authState!=='demo';
   const b=$('authBtn');
-  b.textContent=authState==='expired'?'⛔ Licenca istekla · Odjava':'👤 '+authUser+(authDays!=null?' · '+authDays+' d':'')+' · Odjava';
+  b.textContent=authState==='demo'?'🎁 Demo · '+demoLeft()+' d · Prijava':demoExpired()?'⛔ Demo istekao · Prijava':authState==='expired'?'⛔ Licenca istekla · Odjava':'👤 '+authUser+(authDays!=null?' · '+authDays+' d':'')+' · Odjava';
   b.style.borderColor=authState==='expired'?'var(--bad)':authState==='ok'&&authDays!=null&&authDays<=7?'var(--warn)':'';
   bgRender();
   $('appFoot').innerHTML=footHtml();
 }
-function setAuth(state,name,days,exp){const was=authState;if(state!=='locked'&&was==='locked')syncSoon(1500);authState=state;authUser=state==='locked'?'':name||'';authDays=state==='ok'&&days!=null?days:null;authExp=exp||'';updAuthUI()}
+function setAuth(state,name,days,exp){const was=authState;if(state!=='locked'&&was==='locked')syncSoon(1500);authState=state;authUser=state==='locked'?'':name||'';authDays=(state==='ok'||state==='demo')&&days!=null?days:null;if(state==='demo'||name==='Demo')setAdmin(false);authExp=exp||'';updAuthUI()}
 function lock(msg){setAuth('locked');openAuth(msg)}
 /* ID ovog uređaja (nasumičan, pravi se jednom) — server dozvoljava ograničen broj uređaja po nalogu */
 const DEV_KEY='atmosDev1';
@@ -1381,15 +1406,16 @@ async function serverCheck(u,p){
 }
 function openAuth(msg){
   $('authBody').innerHTML=`<h3 style="margin:0 0 4px">Prijava</h3>
-  <p style="margin:0 0 12px;color:var(--muted);font-size:.85rem">Za pristup aplikaciji unesi korisničko ime i PIN.</p>
+  <p style="margin:0 0 12px;color:var(--muted);font-size:.85rem">Za pristup aplikaciji unesi korisničko ime i PIN.${authState==='demo'||demoExpired()?' Podaci iz demo verzije ostaju.':''}</p>
   <label class="l" for="auU">Korisničko ime</label><input class="fld" id="auU" autocomplete="username" autocapitalize="off" spellcheck="false" style="margin-bottom:10px">
   <label class="l" for="auP">PIN</label><input class="fld" id="auP" type="password" inputmode="numeric" autocomplete="current-password" style="margin-bottom:10px">
   <div id="auMsg" style="min-height:1.2em;color:var(--bad);font-size:.85rem;margin-bottom:10px">${esc(msg||'')}</div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-p" id="auGo" type="button">Prijavi se</button><a class="supLink wa" href="${esc(activationLink())}" target="_blank" rel="noopener">🔑 Aktivacija</a></div>
-  <div class="small muted" style="margin-top:14px">Treba ti pomoć? <a href="${esc(supportLinks().wa)}" target="_blank" rel="noopener" style="color:var(--acc)">WhatsApp ${SUPPORT_TEL}</a> · <a href="${esc(supportLinks().ml)}" style="color:var(--acc)">e-pošta</a></div>`;
+  <button class="btn-p" id="auGo" type="button" style="width:100%">Prijavi se</button>${authState!=='locked'?`<button class="btn-s" id="auBack" type="button" style="display:block;margin:8px auto 0">Nazad</button>`:''}
+  ${authState==='demo'?'':demoUsedUp()?`<div class="small muted" style="text-align:center;margin-top:10px">🎁 Probni period na ovom uređaju je istekao.</div>`:`<button class="btn-s" id="auDemo" type="button" style="display:block;margin:10px auto 0">🎁 Isprobaj besplatno (demo, ${DEMO_DAYS} dana)</button><div class="small muted" style="text-align:center;margin-top:4px">do ${DEMO_MAX} ${DEMO_WHAT}, bez izvoza i sinhronizacije</div>`}
+  <div class="small muted" style="margin-top:14px">Nemaš nalog? <a href="${esc(activationLink())}" target="_blank" rel="noopener" style="color:var(--acc)">🔑 Aktivacija</a> · Treba ti pomoć? <a href="${esc(supportLinks().wa)}" target="_blank" rel="noopener" style="color:var(--acc)">WhatsApp ${SUPPORT_TEL}</a> · <a href="${esc(supportLinks().ml)}" style="color:var(--acc)">e-pošta</a></div>`;
   const dlg=$('authDlg');if(!dlg.open)dlg.showModal();
   const s=loadAuth();if(s)$('auU').value=s.u;
-  $('auGo').onclick=doLogin;
+  $('auGo').onclick=doLogin;if($('auDemo'))$('auDemo').onclick=demoBegin;if($('auBack'))$('auBack').onclick=()=>$('authDlg').close();
   $('authBody').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();doLogin()}};
   setTimeout(()=>($('auU').value?$('auP'):$('auU')).focus(),50);
 }
@@ -1417,7 +1443,7 @@ async function doLogin(){
 }
 /* provera sačuvanih podataka pri pokretanju i povremeno u toku rada */
 async function authRecheck(){
-  const s=loadAuth();if(!s)return;
+  const s=loadAuth();if(!s){if(authState==='demo'&&demoLeft()<=0)setAuth('expired','Demo');return}
   try{
     const r=await serverCheck(s.u,s.p);
     if(r.status==='ok'||r.status==='expired'){if(ui.tab==='podesavanja')setTimeout(bgRender,0)}
@@ -1611,7 +1637,7 @@ function syncStart(){
   addEventListener('online',()=>syncSoon(2000));
   document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-sy.last>60000)syncSoon(1500)});
 }
-function syncCard(){
+function syncCard(){if(authState==='demo')return`<div class="card"><h3>🔄 Sinhronizacija između uređaja</h3><div class="small muted">U demo verziji podaci ostaju samo na ovom uređaju. Posle aktivacije sinhronizacija radi automatski, a podaci iz demo verzije se zadržavaju.</div></div>`;
   const t=sy.last?new Date(sy.last).toLocaleString('sr-RS',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'nikad';
   const st=!syOn()?'Isključena na ovom uređaju':syBusy?'Sinhronizacija…':syMsg||sy.err||'✔ Radi';
   const bad=syOn()&&(syMsg||sy.err)&&!syBusy;
@@ -1629,9 +1655,10 @@ function syncCard(){
    <div class="row wrap" style="gap:8px"><button class="btn-p grow" data-act="syncnow" ${syOn()?'':'disabled'}>🔄 Sinhronizuj sada</button><button class="grow" data-act="synctoggle">${syOn()?'⏸ Isključi':'▶ Uključi'}</button></div></div>`;
 }
 function authStart(){
-  $('authBtn').onclick=()=>{if(confirm('Odjaviti se? Za ponovni ulaz biće potrebni korisničko ime i PIN.')){clearAuth();lock()}};
+  $('authBtn').onclick=()=>{if(authState==='demo'||demoExpired()){openAuth();return}if(confirm('Odjaviti se? Za ponovni ulaz biće potrebni korisničko ime i PIN.')){clearAuth();lock()}};
   const s=loadAuth();if(s&&s.dev)authDev=s.dev;
   if(s&&freshAuth(s)){setAuth(stateOf(s),s.u,daysLeft(s),s.exp);authRecheck()}
+  else if(!s&&demoRec()){if(demoLeft()>0)setAuth('demo','Demo',demoLeft());else{setAuth('expired','Demo');openAuth('Probni period je istekao. Prijavi se ili se javi za aktivaciju.')}}
   else lock(s?'Prijava je istekla — poveži se na internet i prijavi se ponovo.':'');
   setInterval(authRecheck,RECHECK_MIN*60*1000);
   syncStart();

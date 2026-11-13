@@ -49,6 +49,9 @@ Potreban je Google Chrome (na većini telefona je već instaliran).
 
 ## Verzije
 
+### 1.9.3
+- Besplatna probna verzija: taster „Isprobaj besplatno“ na prijavi — 7 dana, do 3 vozila, bez izvoza, kopija i sinhronizacije; posle aktivacije podaci ostaju
+
 ### 1.9.2
 - Promena korisničkog imena: kad se uređaj prijavi pod novim imenom, aplikacija nudi da prenese podatke na novi nalog ili da preuzme samo podatke novog naloga
 
