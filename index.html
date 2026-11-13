@@ -254,7 +254,7 @@ body{max-width:100vw;overflow-x:clip;touch-action:pan-y pinch-zoom}
 <script>
 'use strict';
 if(window.ATMOS_BLOCKED)throw new Error('Atmos Radionica: otvori Android ili Windows aplikaciju');
-const VER='1.9.4';
+const VER='1.9.5';
 let authState='locked'; /* locked = mora prijava; ok = licenca važi; expired = licenca istekla (samo pregled) */
 let RO=true; /* režim samo za pregled dok se ne potvrdi prijava */
 const $=id=>document.getElementById(id);
@@ -1340,7 +1340,7 @@ function roBlock(){toast(demoExpired()?'🔒 Probni period je istekao — samo p
 /* ---------- DEMO (probna verzija) ----------
    30 dana na ovom uređaju, najviše DEMO_MAX vozila, bez izvoza / uvoza / kopija / sinhronizacije.
    Posle prijave licencom podaci iz demo verzije ostaju. */
-const DEMO_KEY='atmosRadionicaDemo1',DEMO_DAYS=30,DEMO_MAX=3,DEMO_WHAT='vozila';
+const DEMO_KEY='atmosRadionicaDemo1',DEMO_DAYS=30,DEMO_MAX=10,DEMO_WHAT='vozila';
 const DEMO_LIMIT_MSG='🎁 Demo verzija: najviše '+DEMO_MAX+' '+DEMO_WHAT+'. Aktiviraj aplikaciju za neograničen rad.';
 const DEMO_BLOCK=['export','restoredlg','restore','import','csvord','csvveh','repprint','docshare','syncnow','synctoggle','syadopt','syfresh','fbpick','fbnow','fballow'];
 const demoCount=()=>db.vehicles.length;

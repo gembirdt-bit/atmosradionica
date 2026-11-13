@@ -49,6 +49,9 @@ Potreban je Google Chrome (na većini telefona je već instaliran).
 
 ## Verzije
 
+### 1.9.5
+- Probna verzija: do 10 vozila
+
 ### 1.9.4
 - Probna verzija traje 30 dana
 
