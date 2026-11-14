@@ -55,6 +55,9 @@ Potreban je Google Chrome (na većini telefona je već instaliran).
 
 ## Verzije
 
+### 1.9.7
+- Brže otvaranje na slabom internetu: najviše 3 s čekanja na server, inače se otvara sačuvana verzija
+
 ### 1.9.6
 - iPhone, iPad i Mac: instalacija na početni ekran (dugme sa uputstvom, vidi se samo na Apple uređajima)
 - iPhone / iPad: izvoz fajlova preko menija Deli
