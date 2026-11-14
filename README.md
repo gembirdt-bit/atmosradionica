@@ -41,6 +41,12 @@ Potreban je Google Chrome (na većini telefona je već instaliran).
 2. Ako se pojavi „Windows je zaštitio računar“, klikni **Više informacija → Ipak pokreni**.
 3. Pokreni **Atmos Radionica** sa radne površine i prijavi se korisničkim imenom i PIN-om.
 
+### iPhone / iPad / Mac
+
+1. Otvori stranicu aplikacije u **Safari**-ju i dodirni **„📲 Instaliraj na iPhone / iPad / Mac“** (dugme se vidi samo na Apple uređajima) — prikazaće se uputstvo.
+2. iPhone / iPad: **Deli → Dodaj na početni ekran → Dodaj**. Mac (Safari, macOS Sonoma+): **Datoteka → Dodaj u Dock**.
+3. Pokreni **Atmos Radionica** sa ikonice i prijavi se. U običnom pregledaču aplikacija se ne otvara, samo sa ikonice.
+
 ### Prvo pokretanje
 
 - Prvo pokretanje traži internet, posle aplikacija radi i bez njega.
@@ -48,6 +54,10 @@ Potreban je Google Chrome (na većini telefona je već instaliran).
 - Ako prelaziš sa ranije verzije u pregledaču: tamo klikni **Izvezi podatke (JSON)**, pa u aplikaciji **Podešavanja → ⬆ Uvezi bazu**.
 
 ## Verzije
+
+### 1.9.6
+- iPhone, iPad i Mac: instalacija na početni ekran (dugme sa uputstvom, vidi se samo na Apple uređajima)
+- iPhone / iPad: izvoz fajlova preko menija Deli
 
 ### 1.9.5
 - Probna verzija: do 10 vozila
