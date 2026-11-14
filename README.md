@@ -55,6 +55,9 @@ Potreban je Google Chrome (na većini telefona je već instaliran).
 
 ## Verzije
 
+### 1.9.9
+- U dnu aplikacije taster „Sve Atmos aplikacije“
+
 ### 1.9.8
 - Uklonjen taster „Proveri ažuriranje“ — provera ide sama
 
