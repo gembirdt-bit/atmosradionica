@@ -55,6 +55,9 @@ Potreban je Google Chrome (na većini telefona je već instaliran).
 
 ## Verzije
 
+### 1.9.8
+- Uklonjen taster „Proveri ažuriranje“ — provera ide sama
+
 ### 1.9.7
 - Brže otvaranje na slabom internetu: najviše 3 s čekanja na server, inače se otvara sačuvana verzija
 
