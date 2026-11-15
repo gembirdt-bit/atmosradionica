@@ -1,7 +1,7 @@
 /* Atmos Radionica — Windows omotač (Electron)
    Otvara sajt aplikacije u sopstvenom prozoru. Sadržaj se ažurira sam sa sajta
    (isti service worker kao PWA), a bez interneta radi iz keša. */
-const { app, BrowserWindow, Menu, shell, session } = require('electron');
+const { app, BrowserWindow, Menu, shell, session, ipcMain } = require('electron');
 const path = require('path');
 
 const APP_URL = 'https://gembirdt-bit.github.io/atmosradionica/index.html';
@@ -36,7 +36,7 @@ function createWindow() {
     icon: path.join(__dirname, 'icon.png'),
     autoHideMenuBar: true,
     show: false,
-    webPreferences: { contextIsolation: true, sandbox: true, spellcheck: false }
+    webPreferences: { contextIsolation: true, sandbox: true, spellcheck: false, preload: path.join(__dirname, 'preload.js') }
   });
   win.once('ready-to-show', () => win.show());
 
@@ -115,6 +115,15 @@ app.whenReady().then(() => {
   session.defaultSession.setPermissionRequestHandler((wc, perm, cb, details) =>
     cb(ok(wc, perm, details && details.requestingUrl ? new URL(details.requestingUrl).origin : '')));
   session.defaultSession.setPermissionCheckHandler((wc, perm, origin) => ok(wc, perm, origin));
+
+  // Čitač kartica: samo stranice aplikacije smeju da traže čitanje saobraćajne
+  let reading = null;
+  ipcMain.handle('saob:read', async e => {
+    const url = (e.senderFrame && e.senderFrame.url) || '';
+    if (!inScope(url)) return { ok: false, msg: 'Nije dozvoljeno.' };
+    if (!reading) reading = require('./saob').read().finally(() => { reading = null; });
+    return reading;
+  });
 
   createWindow();
 });

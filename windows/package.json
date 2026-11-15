@@ -11,6 +11,9 @@
     "start": "electron .",
     "dist": "electron-builder --win --x64 --publish never"
   },
+  "dependencies": {
+    "koffi": "^2.9.0"
+  },
   "devDependencies": {
     "electron": "^33.2.1",
     "electron-builder": "^25.1.8"
@@ -19,7 +22,9 @@
     "appId": "io.github.gembirdt-bit.atmosradionica",
     "productName": "Atmos Radionica",
     "copyright": "Gemb-Bit Željko Ilić",
-    "files": ["main.js", "offline.html", "icon.png"],
+    "files": ["main.js", "preload.js", "saob.js", "offline.html", "icon.png"],
+    "asarUnpack": ["node_modules/koffi/**"],
+    "npmRebuild": false,
     "directories": { "output": "dist" },
     "win": {
       "icon": "icon.png",

@@ -55,6 +55,10 @@ Potreban je Google Chrome (na većini telefona je već instaliran).
 
 ## Verzije
 
+### 2.0.0
+- Skeniranje prepoznaje i odštampanu očitanu saobraćajnu dozvolu (tablica, marka, model, godina, boja, VIN, zapremina, snaga, gorivo)
+- Windows: učitavanje saobraćajne sa čitača kartica (taster „💳 Čitač kartica“ u formi vozila)
+
 ### 1.9.9
 - U dnu aplikacije taster „Sve Atmos aplikacije“
 
