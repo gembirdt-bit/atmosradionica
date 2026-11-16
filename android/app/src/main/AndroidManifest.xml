@@ -26,7 +26,7 @@
             android:resource="@string/assetStatements" />
 
         <activity
-            android:name="com.google.androidbrowserhelper.trusted.LauncherActivity"
+            android:name=".MainLauncherActivity"
             android:exported="true"
             android:label="@string/launcherName">
             <meta-data android:name="android.support.customtabs.trusted.DEFAULT_URL"
